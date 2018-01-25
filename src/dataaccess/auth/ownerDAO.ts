@@ -1,0 +1,24 @@
+import { DbConnection } from '../../config/dbConnection';
+import { BaseDAO } from '../baseDAO';
+import { DataAccessResult } from '../dataAccess.result';
+
+export class OwnerDAO extends BaseDAO {
+    
+    /**
+     * Login
+     */
+    public Login = (email: string, password: string, callback)  => {
+        this.connDb.Connect(
+            connection => {
+                const query: string = 'SELECT * FROM OWNER WHERE EMAIL = ? AND PASSWORD = ?';
+
+                connection.query(query, [email, password], (error, results) => {
+                    callback(results, error);
+                });
+            }, 
+            error => {
+                callback(null, error);
+            }
+        );
+    }
+}
