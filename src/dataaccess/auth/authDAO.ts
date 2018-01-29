@@ -2,7 +2,7 @@ import { DbConnection } from '../../config/dbConnection';
 import { BaseDAO } from '../baseDAO';
 import { DataAccessResult } from '../dataAccess.result';
 
-export class OwnerDAO extends BaseDAO {
+export class AuthDAO extends BaseDAO {
     
     /**
      * Login

@@ -7,4 +7,8 @@ export class BaseRoute {
     protected getVersion() {
         return pjson.description + " - Version: " + pjson.version;
     }
+
+    protected getApiVersion() {
+        return "v1";
+    }
 }

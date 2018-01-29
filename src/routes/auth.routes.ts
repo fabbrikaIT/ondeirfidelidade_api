@@ -12,7 +12,6 @@ export class AuthRoutes extends BaseRoute {
 
   private buildRoutes() {
     this.router.post("/", this.controller.OwnerLogin);
-    this.router.post("/admin", this.controller.AdminLogin);
-    this.router.post("/user", this.controller.UserLogin);
+    this.router.post("/user", this.controller.UserLogin);    
   }
 }
