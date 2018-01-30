@@ -41,7 +41,7 @@ export class OwnerController extends BaseController {
 
     const ownerId = req.params["id"];
 
-    this.dataAccess.getOwner(ownerId, res, this.processDefaultResult);
+    this.dataAccess.GetOwner(ownerId, res, this.processDefaultResult);
   };
 
   /**
@@ -101,8 +101,60 @@ export class OwnerController extends BaseController {
   };
 
   public updateOwner = (req: Request, res: Response) => {
-    res.json("update de owners");
+        // validações do corpo recebido
+        req.checkBody({
+          title: {
+              notEmpty: true,
+              errorMessage: "Título é Obrigatório"
+          },
+          ownerName: {
+              notEmpty: true,
+              errorMessage: "Nome do responsável é Obrigatório"
+          },
+          email: {
+              isEmail: true,
+              errorMessage: "E-mail inválido ou vazio"
+          },
+          ondeIrId: {
+              exists: true,
+              errorMessage: "Necessário um relacionamento com um estabelecimento do Onde Ir"
+          }
+      });
+  
+      const errors = req.validationErrors();
+      if (errors) {
+        return res.json(OwnerErrorsProvider.GetErrorDetails(EOwnerErrors.InvalidOwnerRequiredParams, errors));
+      }
+  
+      let owner: OwnerEntity = OwnerEntity.getInstance();
+      owner.Map(req.body);
+
+      this.dataAccess.UpdateOwner(owner, res, this.processDefaultResult);
   };
+
+  /**
+   * updatePassword - Atualiza a senha de um cliente
+  */
+  public updatePassword = (req: Request, res: Response) => {
+    req.checkBody({
+      memberId: {
+          notEmpty: true,
+          errorMessage: "Código é Obrigatório"
+      },
+      password: {
+          notEmpty: true,
+          errorMessage: "Nova Senha é Obrigatório"
+      }
+    });
+
+    const errors = req.validationErrors();
+    if (errors) {
+      return res.json(OwnerErrorsProvider.GetErrorDetails(EOwnerErrors.InvalidOwnerRequiredParams, errors));
+    }
+
+    const reqObj = (req.body as any);
+    this.dataAccess.UpdatePassword(reqObj.memberId, reqObj.password, res, this.processDefaultResult);
+  }
 
   /**
    * Exclui um cliente da base de dados
@@ -117,7 +169,7 @@ export class OwnerController extends BaseController {
 
     const ownerId = req.params["id"];
 
-    this.dataAccess.deleteOwner(ownerId, res, this.processDefaultResult);
+    this.dataAccess.DeleteOwner(ownerId, res, this.processDefaultResult);
   };
 
   public resetPassword = (req: Request, res: Response) => {

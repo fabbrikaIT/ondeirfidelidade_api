@@ -1,4 +1,4 @@
 export interface IToMysqlDbEntity {
-    toMysqlDbEntity(): any;
+    toMysqlDbEntity(isNew: boolean): any;
     fromMySqlDbEntity(dbentity: any);
 }

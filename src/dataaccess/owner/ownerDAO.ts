@@ -13,6 +13,8 @@ export class OwnerDAO extends BaseDAO {
     private listQuery: string = "SELECT * FROM OWNER";
     private getOwnerQuery: string = "SELECT * FROM OWNER WHERE ID = ?";
     private deleteOwnerQuery: string = "DELETE FROM OWNER WHERE ID = ?";
+    private updatePasswordQuery: string = "UPDATE OWNER SET PASSWORD=? WHERE ID=?"
+    private updateQuery: string = "UPDATE OWNER SET ? WHERE ID= ?"
 
     constructor() {
         super();
@@ -52,7 +54,7 @@ export class OwnerDAO extends BaseDAO {
     /**
      * Return an owner entity from database
     */
-    public getOwner(id: number, res: Response,  callback) {
+    public GetOwner(id: number, res: Response,  callback) {
         this.connDb.Connect(
             connection => {
 
@@ -79,7 +81,7 @@ export class OwnerDAO extends BaseDAO {
     /**
      * Remove an owner entity from database
     */
-    public deleteOwner(id: number, res: Response,  callback) {
+    public DeleteOwner(id: number, res: Response,  callback) {
         this.connDb.Connect(
             connection => {
 
@@ -109,13 +111,11 @@ export class OwnerDAO extends BaseDAO {
     public Create = (owner: OwnerEntity, callback)  => {
         this.connDb.Connect(
             connection => {
-                const dbEntity = owner.toMysqlDbEntity();
+                const dbEntity = owner.toMysqlDbEntity(true);
 
                 const query = connection.query(this.insertQuery, dbEntity, (error, results) => {
                     callback(error, results);
                 });
-
-                console.log(query.sql);
             }, 
             error => {
                 callback(error, null);
@@ -123,5 +123,41 @@ export class OwnerDAO extends BaseDAO {
         );
     }
 
-    
+    /**
+     * UpdatePassword
+     */
+    public UpdatePassword = (memberId: number, password: string, res: Response, callback) => {
+        this.connDb.Connect(
+            connection => {
+                const query = connection.query(this.updatePasswordQuery, [password, memberId], (error, results) => {
+                    callback(res, error, null);
+                });
+
+                console.log(query);
+            },
+            error => {
+                callback(res, error, null);
+            }
+        );
+    }
+
+    /**
+     * Update Owner
+     */
+    public UpdateOwner = (owner: OwnerEntity, res: Response, callback) => {
+        this.connDb.Connect(
+            connection => {
+                const dbOwner = owner.toMysqlDbEntity(false);
+
+                const query = connection.query(this.updateQuery, [dbOwner, owner.id], (error, results) => {
+                    callback(res, error, results);
+                });
+
+                console.log(query);
+            },
+            error => {
+                callback(res, error, null);
+            }
+        );
+    }
 }

@@ -16,6 +16,7 @@ export class OwnerRoutes extends BaseRoute {
     
     this.router.post('/', this.controller.createOwner);
     this.router.post('/reset/:id', this.controller.resetPassword);
+    this.router.post('/updatePassword', this.controller.updatePassword);
 
     this.router.put('/', this.controller.updateOwner);
     this.router.delete('/:id', this.controller.deleteOwner);
