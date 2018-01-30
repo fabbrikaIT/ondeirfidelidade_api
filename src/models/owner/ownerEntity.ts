@@ -50,7 +50,8 @@ export class OwnerEntity extends BaseEntity implements IToMysqlDbEntity {
   };
 
   public fromMySqlDbEntity = (dbEntity: any) => {
-    (this.id = dbEntity.ID), (this.ondeIrId = dbEntity.ONDE_IR_ID);
+    (this.id = dbEntity.ID), 
+    (this.ondeIrId = dbEntity.ONDE_IR_ID),
     (this.title = dbEntity.TITLE),
       (this.registerDate = dbEntity.REGISTER_DATE),
       (this.ownerName = dbEntity.OWNER_NAME),

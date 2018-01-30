@@ -8,6 +8,7 @@ import * as expressValidator from "express-validator";
 import { IndexRoutes } from "../routes/index.route";
 import trafficControl from '../shared/network/traffic-control';
 import { OwnerRoutes } from '../routes/owner.routes';
+import { LoyaltyRoutes } from '../routes/loyalty.route';
 
 declare function require(moduleName: string): any;
 
@@ -52,6 +53,7 @@ class Server {
     const indexRoutes = new IndexRoutes();
     const authRoutes = new AuthRoutes();
     const ownerRoutes = new OwnerRoutes();
+    const loyaltyRoutes = new LoyaltyRoutes();
 
     // Rota raiz - Controle de Versão
     this.express.use("/", indexRoutes.router);
@@ -59,6 +61,8 @@ class Server {
     this.express.use(this.apiVersion + "/auth", authRoutes.router);
     // Rota com as interfaces de manipulação de clientes (estabelecimentos)
     this.express.use(this.apiVersion + "/owner", ownerRoutes.router);
+    // Rota com as interfaces de manipulação de programas de fidelidade
+    this.express.use(this.apiVersion + "/loyalty", loyaltyRoutes.router);
   }
 }
 
