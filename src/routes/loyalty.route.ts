@@ -13,6 +13,7 @@ export class LoyaltyRoutes extends BaseRoute {
   private buildRoutes() {
     this.router.get("/:id", this.controller.GetLoyalty);
     this.router.get("/list/:owner", this.controller.ListLoyalty);
+    this.router.get("/list/:owner/:status", this.controller.ListLoyaltyStatus);
 
     this.router.post("/", this.controller.CreateLoyalty);
     this.router.post("/activate", this.controller.ActivateLoyalty);

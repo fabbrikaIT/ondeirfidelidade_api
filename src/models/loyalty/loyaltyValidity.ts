@@ -43,6 +43,10 @@ export class LoyaltyValidity extends BaseEntity implements IToMysqlDbEntity {
         }
     }
     fromMySqlDbEntity(dbentity: any) {
-        throw new Error("Method not implemented.");
+        this.id = dbentity.ID;
+        this.loyaltyId = dbentity.LOYALTY_ID;
+        this.weekday = dbentity.WEEKDAY;
+        this.startTime = dbentity.STARTTIME;
+        this.endTime = dbentity.ENDTIME;
     }
 }

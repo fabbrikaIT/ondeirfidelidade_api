@@ -53,8 +53,7 @@ export class LoyaltyEntity extends BaseEntity implements IToMysqlDbEntity {
             END_DATE: this.endDate,
             TYPE: this.type,
             DAY_LIMIT: this.dayLimit,
-            USAGE_LIMIT: this.usageLimit,
-            STATUS: this.status
+            USAGE_LIMIT: this.usageLimit
         }
     }
     

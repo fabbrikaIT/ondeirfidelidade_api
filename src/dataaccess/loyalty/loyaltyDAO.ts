@@ -1,3 +1,4 @@
+import { ELoyaltyStatus } from './../../models/loyalty/loyalty';
 import { Sequelize } from 'sequelize';
 import { Response } from 'express';
 
@@ -12,13 +13,17 @@ export class LoyaltyDAO extends BaseDAO {
 
     private insertQuery: string = "INSERT INTO LOYALTY SET ?";
     private insertUsageQuery: string = "INSERT INTO LOYALTY_USAGE_TYPE SET ?";
+    private insertValidityQuery: string = "INSERT INTO LOYALTY_VALIDITY (LOYALTY_ID, WEEKDAY, STARTTIME, ENDTIME) VALUES ?";
     private listQuery: string = "SELECT * FROM LOYALTY";
     private listByOwnerQuery: string = "SELECT * FROM LOYALTY WHERE OWNER_ID = ?";
     private listByOwnerStatusQuery: string = "SELECT * FROM LOYALTY WHERE STATUS = ? AND OWNER_ID = ?";
     private getLoyaltyQuery: string = "SELECT L.*, LU.* FROM LOYALTY L, LOYALTY_USAGE_TYPE LU WHERE L.ID = ? AND L.ID = LU.ID";
     private getLoyaltyValidity: string = "SELECT * FROM LOYALTY_VALIDITY WHERE LOYALTY_ID = ?";
     private deleteLoyaltyQuery: string = "DELETE FROM LOYALTY WHERE ID = ?";
+    private deleteLoyaltyValidityQuery: string = "DELETE FROM LOYALTY_VALIDITY WHERE LOYALTY_ID = ?";
     private updateQuery: string = "UPDATE LOYALTY SET ? WHERE ID= ?"
+    private updateUsageQuery: string = "UPDATE LOYALTY_USAGE_TYPE SET ? WHERE ID = ?";    
+    private changeStatusQuery: string = "UPDATE LOYALTY SET STATUS = ? WHERE ID = ?";
 
     constructor() {
         super();
@@ -32,6 +37,38 @@ export class LoyaltyDAO extends BaseDAO {
             connection => {
 
                 const query = connection.query(this.listQuery, ownerId, (error, results) => {
+                    if (!error) {
+                        let list: Array<LoyaltyEntity>;
+                        list = results.map(item => {
+                            let ownerItem = new LoyaltyEntity();
+                            ownerItem.fromMySqlDbEntity(item);
+
+                            return ownerItem;
+                        });
+
+                        connection.release();
+                        return callback(res, error, list);
+                    }
+
+                    connection.release();
+                    return callback(res, error, results);
+                });
+
+            }, 
+            error => {
+                callback(res, error, null);
+            }
+        );
+    }
+
+    /**
+     * List all loyalty in database
+    */
+    public ListLoyaltyStatus = (ownerId: number, status: ELoyaltyStatus, res: Response, callback) => {
+        this.connDb.Connect(
+            connection => {
+
+                const query = connection.query(this.listByOwnerStatusQuery, [status, ownerId], (error, results) => {
                     if (!error) {
                         let list: Array<LoyaltyEntity>;
                         list = results.map(item => {
@@ -76,6 +113,8 @@ export class LoyaltyDAO extends BaseDAO {
                                 ownerItem.validity = result.map(item => {
                                     let validity = LoyaltyValidity.getInstance();
                                     validity.fromMySqlDbEntity(item);
+
+                                    return validity;
                                 });
 
                                 connection.release();
@@ -102,21 +141,19 @@ export class LoyaltyDAO extends BaseDAO {
     /**
      * Remove an loyalty entity from database
     */
-    public DeleteOwner(id: number, res: Response,  callback) {
+    public DeleteLoyalty(id: number, callback, res?: Response) {
         this.connDb.Connect(
             connection => {
 
                 const query = connection.query(this.deleteLoyaltyQuery, id, (error, results) => {
-                    if (!error && results.length > 0) {
-                       
-                        let ownerItem = new LoyaltyEntity();
-                        ownerItem.fromMySqlDbEntity(results[0]);
-
+                    if (!error) {
                         connection.release();
-                        return callback(res, error, ownerItem);
+                        if (callback)
+                            return callback(error, results);
                     } else {
                         connection.release();
-                        return callback(res, error, null);
+                        if (callback)
+                            return callback(error, null);
                     }
                 });
 
@@ -130,20 +167,52 @@ export class LoyaltyDAO extends BaseDAO {
     /**
      * Create a new loyalty
      */
-    public Create = (owner: LoyaltyEntity, callback)  => {
+    public Create = (loyalty: LoyaltyEntity, callback)  => {
         this.connDb.Connect(
             connection => {
-                const dbEntity = owner.toMysqlDbEntity(true);
+                const dbEntity = loyalty.toMysqlDbEntity(true);
 
                 const query = connection.query(this.insertQuery, dbEntity, (error, results) => {
                     if (!error) {
-                        owner.usageType.id = results.insertId;
-                        const dbUsage = owner.usageType.toMysqlDbEntity(true);
+                        loyalty.usageType.id = results.insertId;
+                        const dbUsage = loyalty.usageType.toMysqlDbEntity(true);
 
                         connection.query(this.insertUsageQuery, dbUsage, (err, result) => {
-                            connection.release();
-                            return callback(error, results);
+                            if (!err) {
+                                if (loyalty.validity && loyalty.validity.length > 0) {
+                                    const dbValidities = new Array<any>();
+
+                                    loyalty.validity.forEach(item => {
+                                        item.loyaltyId = results.insertId;
+
+                                        dbValidities.push(
+                                            [
+                                                item.loyaltyId,
+                                                item.weekday,
+                                                item.startTime, 
+                                                item.endTime
+                                            ]
+                                        );
+                                    });
+
+                                    const qi = connection.query(this.insertValidityQuery, [dbValidities], (e, ret) => { 
+                                        if (e) {
+                                            this.DeleteLoyalty(results.insertId, null);
+                                        }
+                                        
+                                        connection.release();
+                                        return callback(e, results);
+                                    });
+                                }          
+                            } else {
+                                this.DeleteLoyalty(results.insertId, null);
+
+                                connection.release();
+                                return callback(err, results);
+                            }                
                         });
+
+                        
                     } else {    
                         connection.release();
                         return callback(error, results);
@@ -159,19 +228,78 @@ export class LoyaltyDAO extends BaseDAO {
     /**
      * Update a loyalty data from it ID
      */
-    public UpdateOwner = (owner: LoyaltyEntity, res: Response, callback) => {
+    public UpdateLoyalty = (loyalty: LoyaltyEntity, callback) => {
         this.connDb.Connect(
             connection => {
-                const dbOwner = owner.toMysqlDbEntity(false);
+                const dbLoyalty = loyalty.toMysqlDbEntity(false);
 
-                const query = connection.query(this.updateQuery, [dbOwner, owner.id], (error, results) => {
-                    callback(res, error, results);
+                const query = connection.query(this.updateQuery, [dbLoyalty, loyalty.id], (error, results) => {
+                    if (!error) {
+                        const dbUsage = loyalty.usageType.toMysqlDbEntity(false);
+
+                        connection.query(this.updateUsageQuery, [dbUsage, loyalty.usageType.id], (err, result) => {
+                            if (!err) {
+                                if (loyalty.validity && loyalty.validity.length > 0){
+                                    //LIMPA AS VIGENCIAS ATUAIS
+                                    connection.query(this.deleteLoyaltyValidityQuery, loyalty.id, (er, rest) => {
+                                        if (!er) {
+                                            //INSERE VIGENCIAS ATUALIZADAS
+                                            const dbValidities = new Array<any>();
+
+                                            loyalty.validity.forEach(item => {
+                                                dbValidities.push(
+                                                    [
+                                                        item.loyaltyId,
+                                                        item.weekday,
+                                                        item.startTime, 
+                                                        item.endTime
+                                                    ]
+                                                );
+                                            });
+
+                                            const qi = connection.query(this.insertValidityQuery, [dbValidities], (e, ret) => { 
+                                                connection.release();
+                                                return callback(e, results);
+                                            });
+                                        } else {
+                                            connection.release();
+                                            return callback(er, results);
+                                        }
+                                    })
+                                } else {
+                                    connection.release();
+                                    return callback(err, results);
+                                }
+                            } else {
+                                connection.release();
+                                return callback(err, results);
+                            }
+                        });
+
+                    } else {
+                        connection.release();
+                        return callback(error, results);
+                    }
                 });
-
-                console.log(query);
             },
             error => {
-                callback(res, error, null);
+                callback(error, null);
+            }
+        );
+    }
+
+    /**
+     * Update the status of a loyalty program
+     */
+    public UpdateLoyaltyStatus = (loyaltyId: number, status: ELoyaltyStatus, callback) => {
+        this.connDb.Connect(
+            connection => {
+                const query = connection.query(this.changeStatusQuery, [status, loyaltyId], (error, results) => {
+                    callback(error, results);
+                });
+            },
+            error => {
+                callback(error, null);
             }
         );
     }

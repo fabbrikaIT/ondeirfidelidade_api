@@ -23,7 +23,8 @@ export class DbConnection {
             host            : process.env.DB_HOST,
             user            : process.env.DB_USER,
             password        : process.env.DB_PASS,
-            database        : this._dbName
+            database        : this._dbName,
+            multipleStatements : true
         };
 
         if (this.CONNECTION_CONFIG.host === undefined || this.CONNECTION_CONFIG.database === undefined) {

@@ -7,7 +7,9 @@ export enum ELoyaltyErrors {
     InvalidLoyaltyId = 3,
     OwnerNotFound = 4,
     InvalidLoyaltyType = 5,
-    NotImplementedLoyaltyType = 6
+    NotImplementedLoyaltyType = 6,
+    ProgramWithParticipants = 7,
+    LoyaltyNotFound = 8
 }
 
 export class LoyaltyErrorsProvider {
@@ -39,6 +41,14 @@ export class LoyaltyErrorsProvider {
             case ELoyaltyErrors.NotImplementedLoyaltyType:
                 errorResult.ErrorCode = "LYT006";
                 errorResult.ErrorMessage = "Tipo de programa de fidalidade não disponível no momento";
+                break;
+            case ELoyaltyErrors.ProgramWithParticipants:
+                errorResult.ErrorCode = "LYT007";
+                errorResult.ErrorMessage = "Não é possível excluir um programa de fidelidade com participantes. Para cancelar o programa, favor inativá-lo";
+                break;
+            case ELoyaltyErrors.LoyaltyNotFound:
+                errorResult.ErrorCode = "LYT008";
+                errorResult.ErrorMessage = "O programa de fidelidade não foi encontrado.";
                 break;
           default:
             break;
