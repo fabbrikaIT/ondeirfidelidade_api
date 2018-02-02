@@ -203,7 +203,10 @@ export class LoyaltyDAO extends BaseDAO {
                                         connection.release();
                                         return callback(e, results);
                                     });
-                                }          
+                                } else {
+                                    connection.release();
+                                    return callback(err, results);
+                                }       
                             } else {
                                 this.DeleteLoyalty(results.insertId, null);
 
