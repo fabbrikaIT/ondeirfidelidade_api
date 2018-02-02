@@ -192,6 +192,7 @@ export class LoyaltyController extends BaseController {
             loyalty.validity = req.body.validity.map(item => {
                 let validity = LoyaltyValidity.getInstance();
                 validity.Map(item);
+                validity.loyaltyId = loyalty.id;
 
                 return validity;
             });
