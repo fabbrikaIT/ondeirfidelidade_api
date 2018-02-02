@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import * as passgen from 'generate-password';
+import {Md5} from 'ts-md5/dist/md5';
 
 import { LoyaltyDAO } from './../dataaccess/loyalty/loyaltyDAO';
 import { BaseController } from "./base.controller";
@@ -125,6 +127,10 @@ export class LoyaltyController extends BaseController {
         if (loyalty.type == 2) {
             return res.json(LoyaltyErrorsProvider.GetErrorDetails(ELoyaltyErrors.NotImplementedLoyaltyType, errors));
         }
+
+        //Gerando Hash de Identificação
+        const id = passgen.generate({length: 10, numbers: true, symbols: true, excludeSimilarCharacters: true});
+        loyalty.qrHash = Md5.hashStr(id).toString();
 
         // Inserindo o cliente no banco
         this.dataAccess.Create(loyalty, (err, result) => {

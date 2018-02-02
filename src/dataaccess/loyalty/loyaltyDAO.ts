@@ -36,7 +36,7 @@ export class LoyaltyDAO extends BaseDAO {
         this.connDb.Connect(
             connection => {
 
-                const query = connection.query(this.listQuery, ownerId, (error, results) => {
+                const query = connection.query(this.listByOwnerQuery, ownerId, (error, results) => {
                     if (!error) {
                         let list: Array<LoyaltyEntity>;
                         list = results.map(item => {

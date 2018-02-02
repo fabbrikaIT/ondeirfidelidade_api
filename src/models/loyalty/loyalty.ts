@@ -20,6 +20,7 @@ export class LoyaltyEntity extends BaseEntity implements IToMysqlDbEntity {
   public ownerId: number;
   public dayLimit: number;
   public usageLimit: number;
+  public qrHash: string;
   public status: ELoyaltyStatus;
   public validity: Array<LoyaltyValidity>;
   public usageType: LoyaltyUsageType;
@@ -44,7 +45,8 @@ export class LoyaltyEntity extends BaseEntity implements IToMysqlDbEntity {
             OWNER_ID:  this.ownerId,
             DAY_LIMIT: this.dayLimit,
             USAGE_LIMIT: this.usageLimit,
-            STATUS: this.status
+            STATUS: this.status,
+            QR_HASH: this.qrHash
         }
     } else {
         return {
@@ -59,14 +61,15 @@ export class LoyaltyEntity extends BaseEntity implements IToMysqlDbEntity {
     
   }
   fromMySqlDbEntity(dbentity: any) {
-    this.id = dbentity.ID,
-    this.name = dbentity.NAME,
-    this.startDate = dbentity.START_DATE,
-    this.endDate = dbentity.END_DATE,
-    this.type = dbentity.TYPE,
-    this.ownerId = dbentity.OWNER_ID,
-    this.dayLimit = dbentity.DAY_LIMIT,
-    this.usageLimit = dbentity.USAGE_LIMIT,
-    this.status = dbentity.STATUS
+    this.id = dbentity.ID;
+    this.name = dbentity.NAME;
+    this.startDate = dbentity.START_DATE;
+    this.endDate = dbentity.END_DATE;
+    this.type = dbentity.TYPE;
+    this.ownerId = dbentity.OWNER_ID;
+    this.dayLimit = dbentity.DAY_LIMIT;
+    this.usageLimit = dbentity.USAGE_LIMIT;
+    this.status = dbentity.STATUS;
+    this.qrHash = dbentity.QR_HASH;
   }
 }
