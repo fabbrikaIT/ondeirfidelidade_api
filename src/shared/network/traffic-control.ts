@@ -37,9 +37,17 @@ class TrafficControl {
         var send = res.send;
 
         res.send = function(data) {
-            let body = JSON.parse(data);
+            let body;
+            
+            try {
+                body = JSON.parse(data);    
+            } catch (error) {
+                // send.call(this, data);
+                // next();
+                // return;
+            }
 
-            if (body.ErrorCode !== undefined && body.ErrorCode !== "") {
+            if (body && body.ErrorCode !== undefined && body.ErrorCode !== "") {
                 switch (body.ErrorCode) {
                     case "ERR999":
                         res.status(500);
