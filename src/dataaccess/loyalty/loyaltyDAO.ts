@@ -10,7 +10,7 @@ import { LoyaltyValidity } from '../../models/loyalty/loyaltyValidity';
 import { LoyaltyUsageType } from '../../models/loyalty/loyaltyUsageType';
 
 export class LoyaltyDAO extends BaseDAO {
-
+    // Query de acesso aos dados
     private insertQuery: string = "INSERT INTO LOYALTY SET ?";
     private insertUsageQuery: string = "INSERT INTO LOYALTY_USAGE_TYPE SET ?";
     private insertValidityQuery: string = "INSERT INTO LOYALTY_VALIDITY (LOYALTY_ID, WEEKDAY, STARTTIME, ENDTIME) VALUES ?";
@@ -298,6 +298,7 @@ export class LoyaltyDAO extends BaseDAO {
         this.connDb.Connect(
             connection => {
                 const query = connection.query(this.changeStatusQuery, [status, loyaltyId], (error, results) => {
+                    connection.release();
                     callback(error, results);
                 });
             },
