@@ -1,3 +1,4 @@
+import { EOfferStatus } from './../../models/offers/offers.model';
 import { Response } from 'express';
 
 import { BaseDAO } from "../baseDAO";
@@ -122,6 +123,68 @@ export class OffersDAO extends BaseDAO {
                 const query = connection.query(this.insertQuery, dbEntity, (error, results) => { 
                     connection.release();
                     return callback(error, results);
+                });
+            },
+            error => {
+                callback(error, null);
+            }
+        );
+    }
+
+    /**
+     * Update an offer in database
+     */
+    public Update = (offer: OffersEntity, callback)  => { 
+        this.connDb.Connect(
+            connection => { 
+                const dbEntity = offer.toMysqlDbEntity(true);
+
+                const query = connection.query(this.updateQuery, [dbEntity, offer.id], (error, results) => { 
+                    connection.release();
+                    return callback(error, results);
+                });
+            },
+            error => {
+                callback(error, null);
+            }
+        );
+    }
+
+    /**
+     * Remove an offer entity from database
+    */
+    public DeleteOffer = (id: number, callback, res?: Response) => {
+        this.connDb.Connect(
+            connection => {
+
+                const query = connection.query(this.deleteOffersQuery, id, (error, results) => {
+                    if (!error) {
+                        connection.release();
+                        if (callback)
+                            return callback(error, results);
+                    } else {
+                        connection.release();
+                        if (callback)
+                            return callback(error, null);
+                    }
+                });
+
+            }, 
+            error => {
+                callback(res, error, null);
+            }
+        );
+    }
+
+    /**
+     * Update the status of an offer
+     */
+    public UpdateOfferStatus = (loyaltyId: number, status: EOfferStatus, callback) => {
+        this.connDb.Connect(
+            connection => {
+                const query = connection.query(this.changeStatusQuery, [status, loyaltyId], (error, results) => {
+                    connection.release();
+                    callback(error, results);
                 });
             },
             error => {

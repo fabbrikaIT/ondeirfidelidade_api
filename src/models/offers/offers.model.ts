@@ -19,6 +19,7 @@ export class OffersEntity extends BaseEntity implements IToMysqlDbEntity {
     public reward: string;
     public qrHash: string;
     public status: EOfferStatus;
+    public restriction: string;
 
     public static getInstance(): OffersEntity { 
         const instance = new OffersEntity();
@@ -26,6 +27,7 @@ export class OffersEntity extends BaseEntity implements IToMysqlDbEntity {
         instance.discount = 0;
         instance.reward = "";
         instance.description = "";
+        instance.restriction = "";
 
         return instance;
     }
@@ -42,7 +44,8 @@ export class OffersEntity extends BaseEntity implements IToMysqlDbEntity {
                 REWARD: this.reward,
                 STATUS: this.status,
                 QR_HASH: this.qrHash,
-                DESCRIPTION: this.description
+                DESCRIPTION: this.description,
+                RESTRICTIONS: this.restriction
             }
         } else {
             return {
@@ -52,7 +55,8 @@ export class OffersEntity extends BaseEntity implements IToMysqlDbEntity {
                 TYPE: this.type,
                 DISCOUNT: this.discount,
                 REWARD: this.reward,
-                DESCRIPTION: this.description
+                DESCRIPTION: this.description,
+                RESTRICTIONS: this.restriction
             }
         }
     }
@@ -68,5 +72,6 @@ export class OffersEntity extends BaseEntity implements IToMysqlDbEntity {
         this.status = dbentity.STATUS;
         this.qrHash = dbentity.QR_HASH;
         this.description = dbentity.DESCRIPTION;
+        this.restriction = dbentity.RESTRICTIONS;
     }
 }

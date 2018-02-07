@@ -8,7 +8,9 @@ export enum EOffersErrors {
     InvalidDiscountParams = 4,
     InvalidPromotionParams = 5,
     OwnerNotFound = 6,
-    InvalidOfferId = 7
+    InvalidOfferId = 7,
+    HasValidCounpons = 8,
+    OfferNotFound = 9
 }
 
 export class OffersErrorsProvider {
@@ -44,6 +46,14 @@ export class OffersErrorsProvider {
     case EOffersErrors.InvalidOfferId:
         errorResult.ErrorCode = "OFF007";
         errorResult.ErrorMessage = "Código de oferta nulo ou inválido";
+        break;
+    case EOffersErrors.HasValidCounpons:
+        errorResult.ErrorCode = "OFF008";
+        errorResult.ErrorMessage = "Não é possível excluir uma oferta com cupons de descontos. Favor inativá-la!";
+        break;
+    case EOffersErrors.OfferNotFound:
+        errorResult.ErrorCode = "OFF009";
+        errorResult.ErrorMessage = "A Oferta informada não foi encontrada.";
         break;
       default:
         break;
