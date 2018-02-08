@@ -1,3 +1,4 @@
+import { OwnerEntity } from './../owner/ownerEntity';
 import { LoyaltyValidity } from './loyaltyValidity';
 import { BaseEntity } from "../base.model";
 import { IToMysqlDbEntity } from "../iToMysqlDbEntity";
@@ -24,6 +25,7 @@ export class LoyaltyEntity extends BaseEntity implements IToMysqlDbEntity {
   public status: ELoyaltyStatus;
   public validity: Array<LoyaltyValidity>;
   public usageType: LoyaltyUsageType;
+  public owner: OwnerEntity;
 
   public static getInstance(): LoyaltyEntity {
     const instance = new LoyaltyEntity();
@@ -31,6 +33,7 @@ export class LoyaltyEntity extends BaseEntity implements IToMysqlDbEntity {
     instance.validity = new Array<LoyaltyValidity>();
     instance.type = 1;
     instance.usageType = LoyaltyUsageType.getInstance();
+    instance.owner = OwnerEntity.getInstance();
 
     return instance;
   }

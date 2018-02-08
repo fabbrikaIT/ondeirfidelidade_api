@@ -1,3 +1,4 @@
+import { OwnerEntity } from './../owner/ownerEntity';
 import { BaseEntity } from "../base.model";
 import { IToMysqlDbEntity } from "../iToMysqlDbEntity";
 
@@ -20,6 +21,7 @@ export class OffersEntity extends BaseEntity implements IToMysqlDbEntity {
     public qrHash: string;
     public status: EOfferStatus;
     public restriction: string;
+    public owner: OwnerEntity;
 
     public static getInstance(): OffersEntity { 
         const instance = new OffersEntity();
@@ -28,6 +30,7 @@ export class OffersEntity extends BaseEntity implements IToMysqlDbEntity {
         instance.reward = "";
         instance.description = "";
         instance.restriction = "";
+        instance.owner = OwnerEntity.getInstance();
 
         return instance;
     }

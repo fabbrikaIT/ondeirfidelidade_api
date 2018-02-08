@@ -1,3 +1,4 @@
+import { OwnerDAO } from './../dataaccess/owner/ownerDAO';
 import { EOfferStatus } from './../models/offers/offers.model';
 import { Request, Response } from 'express';
 import * as passgen from 'generate-password';
@@ -54,7 +55,27 @@ export class OffersController extends BaseController {
 
         const id = req.params["id"];
 
-        this.dataAccess.GetOffer(id, res, this.processDefaultResult);
+        this.dataAccess.GetOffer(id, res, (r, err, result) => {
+            if (err) {
+                return res.json(ServiceResult.HandlerError(err));
+            }
+
+            if (!result || result.length === 0) {
+                return res.json(OffersErrorsProvider.GetError(EOffersErrors.OfferNotFound));
+            }
+    
+            const ownerAccess: OwnerDAO = new OwnerDAO();
+            ownerAccess.GetOwner((result as OffersEntity).ownerId, res, (r, er, ret) => {
+                if (er) {
+                    return res.json(ServiceResult.HandlerError(er));
+                }
+
+                (result as OffersEntity).owner = ret;
+                const serviceResult: ServiceResult = ServiceResult.HandlerSucess();
+                serviceResult.Result = result;
+                return res.json(serviceResult);
+            });
+        });
     }
     
     /* 
@@ -168,10 +189,15 @@ export class OffersController extends BaseController {
             if (offer.discount <= 0 || offer.reward === "") {
                 return res.json(OffersErrorsProvider.GetError(EOffersErrors.InvalidDiscountParams));
             }
+
+            offer.description = "";
         } else { // Tipo de Oferta Promocional
             if (offer.description && offer.description === "") {
                 return res.json(OffersErrorsProvider.GetError(EOffersErrors.InvalidPromotionParams));
             }
+
+            offer.discount = 0;
+            offer.reward = "";
         }
 
         // Atualizando a oferta no banco

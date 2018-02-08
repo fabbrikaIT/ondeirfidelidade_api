@@ -5,17 +5,17 @@ import * as framework from "swt-framework";
 import * as expressValidator from "express-validator";
 
 import { IndexRoutes } from "../routes/index.route";
-import trafficControl from '../shared/network/traffic-control';
-import { OwnerRoutes } from '../routes/owner.routes';
-import { LoyaltyRoutes } from '../routes/loyalty.route';
-import { OffersRoutes } from '../routes/offers.routes';
-import { AuthRoutes } from './../routes/auth.routes';
+import trafficControl from "../shared/network/traffic-control";
+import { OwnerRoutes } from "../routes/owner.routes";
+import { LoyaltyRoutes } from "../routes/loyalty.route";
+import { OffersRoutes } from "../routes/offers.routes";
+import { AuthRoutes } from "./../routes/auth.routes";
 
 declare function require(moduleName: string): any;
 
 class Server {
   public express;
-  private apiVersion: string = "/v0";  
+  private apiVersion: string = "/v0";
 
   constructor() {
     this.express = express();
@@ -26,10 +26,21 @@ class Server {
   private ApplySettings() {
     const dotenv: any = require("dotenv");
 
+    // Linux
+    // -----------------------------------------------------------------
+    // if (process.env.NODE_ENV == "production") {
+    //   dotenv.config({ path: __dirname + "/settings/prod.env" });
+    // } else {
+    //   dotenv.config({ path: __dirname + "/settings/dev.env" });
+    // }
+
+    // Windows
+    // -----------------------------------------------------------------
     if (process.env.NODE_ENV == "production") {
-      dotenv.config({ path: __dirname + "\\settings\\prod.env" });
-    } else {
-      dotenv.config({ path: __dirname + "\\settings\\dev.env" });
+        dotenv.config({ path: __dirname + "\\settings\\prod.env" });
+    }
+    else {
+        dotenv.config({ path: __dirname + "\\settings\\dev.env" });
     }
 
     //Configurando o body parser

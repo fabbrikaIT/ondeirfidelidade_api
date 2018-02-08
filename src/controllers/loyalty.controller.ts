@@ -9,6 +9,7 @@ import { LoyaltyErrorsProvider, ELoyaltyErrors } from '../config/errors/loyaltyE
 import { LoyaltyEntity, ELoyaltyStatus } from '../models/loyalty/loyalty';
 import { LoyaltyUsageType } from './../models/loyalty/loyaltyUsageType';
 import { LoyaltyValidity } from './../models/loyalty/loyaltyValidity';
+import { OwnerDAO } from '../dataaccess/owner/ownerDAO';
 
 export class LoyaltyController extends BaseController {
     private dataAccess = new LoyaltyDAO();
@@ -64,7 +65,27 @@ export class LoyaltyController extends BaseController {
 
         const id = req.params["id"];
 
-        this.dataAccess.GetLoyalty(id, res, this.processDefaultResult);
+        this.dataAccess.GetLoyalty(id, res, (r, err, result) => {
+            if (err) {
+                return res.json(ServiceResult.HandlerError(err));
+            }
+
+            if (!result || result.length === 0) {
+                return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyNotFound));
+            }
+    
+            const ownerAccess: OwnerDAO = new OwnerDAO();
+            ownerAccess.GetOwner((result as LoyaltyEntity).ownerId, res, (r, er, ret) => {
+                if (er) {
+                    return res.json(ServiceResult.HandlerError(er));
+                }
+
+                (result as LoyaltyEntity).owner = ret;
+                const serviceResult: ServiceResult = ServiceResult.HandlerSucess();
+                serviceResult.Result = result;
+                res.json(serviceResult);
+            });
+        });
     }
 
     /**
