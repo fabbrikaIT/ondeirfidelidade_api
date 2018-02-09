@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 import * as passgen from 'generate-password';
 import {Md5} from 'ts-md5/dist/md5';
+import * as cloudinary from 'cloudinary';
 // import { check, validationResult } from "express-validator/check";
 
 import { BaseController } from "./base.controller";
 import { OwnerDAO } from "./../dataaccess/owner/ownerDAO";
 import { OwnerEntity } from "./../models/owner/ownerEntity";
 import { EOwnerErrors, OwnerErrorsProvider } from '../config/errors/ownerErrors';
-import {ServiceResult} from '../models/serviceResult.model';
+import { ServiceResult } from '../models/serviceResult.model';
 
 import {
   GenericErrorsProvider,
@@ -84,6 +85,9 @@ export class OwnerController extends BaseController {
     const password = passgen.generate({length: 10, numbers: true, symbols: true, excludeSimilarCharacters: true});
     owner.password = Md5.hashStr(password).toString();
 
+    const imageLogo = owner.logo;
+    owner.logo = "";
+
     // Inserindo o cliente no banco
     this.dataAccess.Create(owner, (err, result) => {
         if (err) {
@@ -96,7 +100,29 @@ export class OwnerController extends BaseController {
 
         // Enviar e-mail de boas vindas.
 
-        res.json(ServiceResult.HandlerSucess());
+        //Upload imagem
+        if (imageLogo && imageLogo.length > 0) {
+          cloudinary.config({ 
+            cloud_name: 'ondeirfidelidade', 
+            api_key: '489546737959678', 
+            api_secret: 'alml7Ms_FyyBRkJ90sUbxWqLF1Q' 
+          });
+
+          cloudinary.uploader.upload(imageLogo, (ret) => {
+            if (ret) {
+              owner.id = result.insertId;
+              owner.logo = ret.url.replace("/image/upload", "/image/upload/t_fidelidadeimages").replace(".png", ".jpg");
+
+              return this.dataAccess.UpdateOwner(owner, res, this.processDefaultResult);
+            } else {
+              return res.json(OwnerErrorsProvider.GetError(EOwnerErrors.LogoUploadError));
+            }
+          });
+        } else {
+          return res.json(ServiceResult.HandlerSucess());
+        }
+
+        
     });
   };
 
@@ -129,7 +155,28 @@ export class OwnerController extends BaseController {
       let owner: OwnerEntity = OwnerEntity.getInstance();
       owner.Map(req.body);
 
-      this.dataAccess.UpdateOwner(owner, res, this.processDefaultResult);
+      const imageLogo = owner.logo;
+
+      //Upload imagem
+      if (imageLogo && imageLogo.length > 0) {
+        cloudinary.config({ 
+          cloud_name: 'ondeirfidelidade', 
+          api_key: '489546737959678', 
+          api_secret: 'alml7Ms_FyyBRkJ90sUbxWqLF1Q' 
+        });
+
+        cloudinary.uploader.upload(imageLogo, (ret) => {
+          if (ret) {
+            owner.logo = ret.url.replace("/image/upload", "/image/upload/t_fidelidadeimages").replace(".png", ".jpg");
+
+            return this.dataAccess.UpdateOwner(owner, res, this.processDefaultResult);
+          } else {
+            return res.json(OwnerErrorsProvider.GetError(EOwnerErrors.LogoUploadError));
+          }
+        });
+      } else {
+        return res.json(OwnerErrorsProvider.GetError(EOwnerErrors.LogoUploadError));
+      }
   };
 
   /**

@@ -44,8 +44,8 @@ class Server {
     }
 
     //Configurando o body parser
-    this.express.use(parser.json());
-    this.express.use(parser.urlencoded({ extended: true }));
+    this.express.use(parser.json({limit: '50mb'}));
+    this.express.use(parser.urlencoded({ extended: true, limit: '50mb' }));
 
     //Configurando Pre-Flight
     this.express.use(framework.security.enablePreflight);

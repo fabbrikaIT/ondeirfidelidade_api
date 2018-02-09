@@ -4,7 +4,8 @@ import logProvider from "../../shared/log/log-provider";
 export enum EOwnerErrors {
   InvalidOwnerRequiredParams = 1,
   EmailAlreadyExists = 2,
-  InvalidOwnerId = 3
+  InvalidOwnerId = 3,
+  LogoUploadError = 4,
 }
 
 export class OwnerErrorsProvider {
@@ -25,6 +26,9 @@ export class OwnerErrorsProvider {
             errorResult.ErrorCode = "OWN003";
             errorResult.ErrorMessage = "Código de identificação de cliente inválido";
             break;
+        case EOwnerErrors.LogoUploadError:
+          errorResult.ErrorCode = "OWN004";
+          errorResult.ErrorMessage = "O Cliente foi criado com sucesso, porém ocorreu um erro no upload da imagem."
       default:
         break;
     }

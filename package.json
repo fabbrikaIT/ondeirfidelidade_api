@@ -27,6 +27,7 @@
     "@types/jquery": "^3.3.0",
     "@types/node": "^9.3.0",
     "body-parser": "^1.18.2",
+    "cloudinary": "^1.9.1",
     "dotenv": "^4.0.0",
     "express": "^4.16.2",
     "express-validator": "^4.3.0",

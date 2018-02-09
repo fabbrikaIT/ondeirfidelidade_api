@@ -42,8 +42,6 @@ export class OwnerDAO extends BaseDAO {
 
                     callback(res, error, results);
                 });
-
-                console.log(query.sql);
             }, 
             error => {
                 callback(res, error, null);
