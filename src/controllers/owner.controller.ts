@@ -155,8 +155,11 @@ export class OwnerController extends BaseController {
       let owner: OwnerEntity = OwnerEntity.getInstance();
       owner.Map(req.body);
 
-      const imageLogo = owner.logo;
+      let imageLogo = owner.logo;
 
+      if (imageLogo.indexOf("http") >= 0) {
+        imageLogo = "";
+      }
       //Upload imagem
       if (imageLogo && imageLogo.length > 0) {
         cloudinary.config({ 
@@ -175,7 +178,7 @@ export class OwnerController extends BaseController {
           }
         });
       } else {
-        return res.json(OwnerErrorsProvider.GetError(EOwnerErrors.LogoUploadError));
+        return this.dataAccess.UpdateOwner(owner, res, this.processDefaultResult);
       }
   };
 
