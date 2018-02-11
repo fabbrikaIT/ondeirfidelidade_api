@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import * as passgen from 'generate-password';
 import {Md5} from 'ts-md5/dist/md5';
 import * as cloudinary from 'cloudinary';
+import * as mailchimp from 'mailchimp-api-v3';
 // import { check, validationResult } from "express-validator/check";
 
 import { BaseController } from "./base.controller";
@@ -99,6 +100,17 @@ export class OwnerController extends BaseController {
         }
 
         // Enviar e-mail de boas vindas.
+        const mail = new mailchimp('e1e9082700eecb1efb97dc7194b4aa92-us17');
+        mail.post('/lists/7e0195b430/members', {
+          email_address: owner.email,
+          status: 'subscribed',
+          merge_fields : {
+            FNAME: owner.ownerName,
+            PASSWORD: password,
+            CELLPHONE: owner.cellphone
+          }
+        });
+
 
         //Upload imagem
         if (imageLogo && imageLogo.length > 0) {
