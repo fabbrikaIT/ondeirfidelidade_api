@@ -84,6 +84,7 @@ export class OwnerController extends BaseController {
 
     // Gerando senha
     const password = passgen.generate({length: 10, numbers: true, symbols: true, excludeSimilarCharacters: true});
+    const originalPassword = password;
     owner.password = Md5.hashStr(password).toString();
 
     const imageLogo = owner.logo;
@@ -106,8 +107,9 @@ export class OwnerController extends BaseController {
           status: 'subscribed',
           merge_fields : {
             FNAME: owner.ownerName,
-            PASSWORD: password,
-            CELLPHONE: owner.cellphone
+            PASSWORD: originalPassword,
+            CELLPHONE: owner.cellphone,
+            PLACE: owner.title
           }
         });
 
