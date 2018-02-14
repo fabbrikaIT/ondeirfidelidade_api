@@ -10,6 +10,7 @@ import { OwnerRoutes } from "../routes/owner.routes";
 import { LoyaltyRoutes } from "../routes/loyalty.route";
 import { OffersRoutes } from "../routes/offers.routes";
 import { AuthRoutes } from "./../routes/auth.routes";
+import { ReportsRoutes } from "../routes/report.routes";
 
 declare function require(moduleName: string): any;
 
@@ -67,6 +68,7 @@ class Server {
     const ownerRoutes = new OwnerRoutes();
     const loyaltyRoutes = new LoyaltyRoutes();
     const offersRoutes = new OffersRoutes();
+    const reportsRoutes = new ReportsRoutes();
 
     // Rota raiz - Controle de Versão
     this.express.use("/", indexRoutes.router);
@@ -78,6 +80,8 @@ class Server {
     this.express.use(this.apiVersion + "/loyalty", loyaltyRoutes.router);
     // Rota com as interfaces de manipulação de ofertas e descontos
     this.express.use(this.apiVersion + "/offers", offersRoutes.router);
+    // Rota com as interfaces de indicadores e relatórios
+    this.express.use(this.apiVersion + "/reports", reportsRoutes.router);
   }
 }
 

@@ -12,6 +12,7 @@ export class OwnerDAO extends BaseDAO {
     private insertQuery: string = "INSERT INTO OWNER SET ?";
     private listQuery: string = "SELECT * FROM OWNER";
     private getOwnerQuery: string = "SELECT * FROM OWNER WHERE ID = ?";
+    private getOwnerByEmailQuery: string = "SELECT * FROM OWNER WHERE EMAIL = ?";
     private deleteOwnerQuery: string = "DELETE FROM OWNER WHERE ID = ?";
     private updatePasswordQuery: string = "UPDATE OWNER SET PASSWORD=? WHERE ID=?"
     private updateQuery: string = "UPDATE OWNER SET ? WHERE ID= ?"
@@ -67,11 +68,32 @@ export class OwnerDAO extends BaseDAO {
 
                     callback(res, error, results);
                 });
+            }, 
+            error => {
+                callback(res, error, null);
+            }
+        );
+    }
+
+    public GetOwnerByEmail(email: string, callback) {
+        this.connDb.Connect(
+            connection => {
+                const query = connection.query(this.getOwnerByEmailQuery, email, (error, results) => {
+                    if (!error && results.length > 0) {
+                       
+                        let ownerItem = new OwnerEntity();
+                        ownerItem.fromMySqlDbEntity(results[0]);
+
+                        return callback(error, ownerItem);
+                    }
+
+                    callback(error, null);
+                });
 
                 console.log(query.sql);
             }, 
             error => {
-                callback(res, error, null);
+                callback(error, null);
             }
         );
     }

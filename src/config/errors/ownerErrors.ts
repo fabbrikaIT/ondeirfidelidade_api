@@ -6,6 +6,7 @@ export enum EOwnerErrors {
   EmailAlreadyExists = 2,
   InvalidOwnerId = 3,
   LogoUploadError = 4,
+  EmailNotFound = 5
 }
 
 export class OwnerErrorsProvider {
@@ -29,6 +30,11 @@ export class OwnerErrorsProvider {
         case EOwnerErrors.LogoUploadError:
           errorResult.ErrorCode = "OWN004";
           errorResult.ErrorMessage = "O Cliente foi criado com sucesso, porém ocorreu um erro no upload da imagem."
+          break;
+        case EOwnerErrors.EmailNotFound:
+          errorResult.ErrorCode = "OWN005";
+          errorResult.ErrorMessage = "Não foi encontrado cadastro para o e-mail.";
+          break;
       default:
         break;
     }

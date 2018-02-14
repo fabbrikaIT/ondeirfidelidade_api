@@ -237,6 +237,32 @@ export class OwnerController extends BaseController {
   };
 
   public resetPassword = (req: Request, res: Response) => {
-    res.json("reset de owners");
+    req.checkBody("email").isEmail();
+
+    const errors = req.validationErrors();
+    if (errors) {
+      return res.json(OwnerErrorsProvider.GetErrorDetails(EOwnerErrors.InvalidOwnerRequiredParams, errors));
+    }
+
+    const email = (req.body as any).email;
+
+    this.dataAccess.GetOwnerByEmail(email, (err, ret) => {
+      if (err) {
+        return res.json(ServiceResult.HandlerError(err));
+      }
+
+      if (ret) {
+        // Gerando senha
+        const password = passgen.generate({length: 10, numbers: true, symbols: true, excludeSimilarCharacters: true});
+        const originalPassword = password;
+        const newPassword = Md5.hashStr(password).toString();
+
+        //Enviar email com nova senha
+        
+        this.dataAccess.UpdatePassword(ret.id, newPassword, res, this.processDefaultResult);
+      } else {
+        return res.json(OwnerErrorsProvider.GetError(EOwnerErrors.EmailNotFound));
+      }
+    })
   };
 }
