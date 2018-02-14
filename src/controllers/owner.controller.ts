@@ -101,7 +101,7 @@ export class OwnerController extends BaseController {
         }
 
         // Enviar e-mail de boas vindas.
-        const mail = new mailchimp('e1e9082700eecb1efb97dc7194b4aa92-us17');
+        const mail = new mailchimp(process.env.MAILCHIMP_KEY);
         mail.post('/lists/7e0195b430/members', {
           email_address: owner.email,
           status: 'subscribed',
@@ -118,8 +118,8 @@ export class OwnerController extends BaseController {
         if (imageLogo && imageLogo.length > 0) {
           cloudinary.config({ 
             cloud_name: 'ondeirfidelidade', 
-            api_key: '489546737959678', 
-            api_secret: 'alml7Ms_FyyBRkJ90sUbxWqLF1Q' 
+            api_key: process.env.CLOUDNARY_KEY, 
+            api_secret: process.env.CLOUDNARY_SECRET 
           });
 
           cloudinary.uploader.upload(imageLogo, (ret) => {
