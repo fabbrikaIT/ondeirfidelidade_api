@@ -1,0 +1,196 @@
+{
+  "swagger": "2.0",
+  "basePath": "/",
+  "definitions": {
+    "ServiceResult": {
+      "type": "object",
+      "properties": {
+        "errorCode": {
+          "type": "string",
+          "description":
+            "Código de erro de negócio encontrado. Vazio se não teve erro"
+        },
+        "errorMessage": {
+          "type": "string",
+          "description": "Mensagem do erro encontrado"
+        },
+        "errorDetails": {
+          "type": "string",
+          "description": "JSON com detalhes do erro ou argumentos"
+        },
+        "executed": {
+          "type": "boolean",
+          "description": "Indicador se a execução foi realizada com sucesso"
+        }
+      }
+    },
+    "AuthEntity": {
+      "type": "object",
+      "properties": {
+        "loginAccept": {
+          "type": "boolean"
+        },
+        "userName": {
+          "type": "string",
+          "description": "Nome de apresentação do usuário"
+        },
+        "authenticationToken": {
+          "type": "string",
+          "description": "Token da sessão"
+        },
+        "userId": {
+          "type": "integer",
+          "description": "Identificador do usuário logado"
+        },
+        "type": {
+          "type": "integer",
+          "description": "1 - Cliente da Plataforma, 2 - Administrador"
+        }
+      }
+    },
+    "LoyaltyValidity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "loyaltyId": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "weekday": {
+          "type": "integer",
+          "format": "int32",
+          "enum": [
+            "1 - Segunda",
+            "2 - Terça",
+            "3 - Quarta",
+            "4 - Quinta",
+            "5 - Sexta",
+            "6 - Sábado",
+            "7 - Domingo"
+          ]
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "LoyaltyUsageType": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "id do programa de fidelidade"
+        },
+        "usageGoal": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "usageReward": {
+          "type": "string"
+        }
+      }
+    },
+    "LoyaltyEntity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "integer",
+          "enum": ["1 - Uso", "2 - Pontuação"]
+        },
+        "dayLimit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "usageLimit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "naqrHash": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "integer",
+          "enum": [
+            "1 - Pendente",
+            "2 - Ativo",
+            "3 - Cancelado",
+            "4 - Finalizado"
+          ]
+        },
+        "validity": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LoyaltyValidity"
+          }
+        },
+        "usageType": {
+          "$ref": "#/definitions/LoyaltyUsageType"
+        }
+      }
+    },
+    "OwnerEntity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ondeIrId": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Referencia ao cadastro no aplicativo Onde Ir"
+        },
+        "title": {
+          "type": "string",
+          "description":
+            "Nome do estabelecimento que será mostrado nos Vouchers e Sistema"
+        },
+        "name": {
+          "type": "string",
+          "description": "Nome do responsável pelo estabelecimento"
+        },
+        "email": {
+          "type": "string"
+        },
+        "cellphone": {
+          "type": "string"
+        },
+        "logo": {
+          "type": "string",
+          "description": "Logotipo do estabelecimento"
+        },
+        "password": {
+          "type": "string",
+          "description": "chave de acesso ao sistema"
+        }
+      }
+    }
+  }
+}

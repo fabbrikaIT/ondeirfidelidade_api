@@ -1,0 +1,1116 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "0.1.0",
+    "title": "Onde Ir Fidelidade - API",
+    "description":
+      "API para a definição das interface de integração e comunicação com o sistema de Fidelidade do Onde Ir.",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "contact": {
+      "email": "contato@fabbrika.com.br"
+    }
+  },
+  "host":
+    "onde-ir-fidelidade-api-ondeirfidelidade.7e14.starter-us-west-2.openshiftapps.com",
+  "basePath": "/v0",
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "API controle de acesso a aplicação"
+    },
+    {
+      "name": "Loyalty",
+      "description": "API gestão de programas de fidelidade"
+    },
+    {
+      "name": "Offers",
+      "description": "API gestão de ofertas e campanhas"
+    },
+    {
+      "name": "Owner",
+      "description": "API gestão de clientes/credenciados"
+    }
+  ],
+  "definitions": {
+    "ServiceResult": {
+      "type": "object",
+      "properties": {
+        "errorCode": {
+          "type": "string",
+          "description":
+            "Código de erro de negócio encontrado. Vazio se não teve erro"
+        },
+        "errorMessage": {
+          "type": "string",
+          "description": "Mensagem do erro encontrado"
+        },
+        "errorDetails": {
+          "type": "string",
+          "description": "JSON com detalhes do erro ou argumentos"
+        },
+        "executed": {
+          "type": "boolean",
+          "description": "Indicador se a execução foi realizada com sucesso"
+        }
+      }
+    },
+    "AuthEntity": {
+      "type": "object",
+      "properties": {
+        "loginAccept": {
+          "type": "boolean"
+        },
+        "userName": {
+          "type": "string",
+          "description": "Nome de apresentação do usuário"
+        },
+        "authenticationToken": {
+          "type": "string",
+          "description": "Token da sessão"
+        },
+        "userId": {
+          "type": "integer",
+          "description": "Identificador do usuário logado"
+        },
+        "type": {
+          "type": "integer",
+          "description": "1 - Cliente da Plataforma, 2 - Administrador"
+        }
+      }
+    },
+    "LoyaltyValidity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "loyaltyId": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "weekday": {
+          "type": "integer",
+          "format": "int32",
+          "enum": [
+            "1 - Segunda",
+            "2 - Terça",
+            "3 - Quarta",
+            "4 - Quinta",
+            "5 - Sexta",
+            "6 - Sábado",
+            "7 - Domingo"
+          ]
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "LoyaltyUsageType": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "id do programa de fidelidade"
+        },
+        "usageGoal": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "usageReward": {
+          "type": "string"
+        }
+      }
+    },
+    "LoyaltyEntity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "integer",
+          "enum": ["1 - Uso", "2 - Pontuação"]
+        },
+        "dayLimit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "usageLimit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "qrHash": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "integer",
+          "enum": [
+            "1 - Pendente",
+            "2 - Ativo",
+            "3 - Cancelado",
+            "4 - Finalizado"
+          ]
+        },
+        "validity": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LoyaltyValidity"
+          }
+        },
+        "usageType": {
+          "$ref": "#/definitions/LoyaltyUsageType"
+        }
+      }
+    },
+    "OwnerEntity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ondeIrId": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Referencia ao cadastro no aplicativo Onde Ir"
+        },
+        "title": {
+          "type": "string",
+          "description":
+            "Nome do estabelecimento que será mostrado nos Vouchers e Sistema"
+        },
+        "name": {
+          "type": "string",
+          "description": "Nome do responsável pelo estabelecimento"
+        },
+        "registerDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Nome do responsável pelo estabelecimento"
+        },
+        "email": {
+          "type": "string"
+        },
+        "city": {
+          "type": "integer"
+        },
+        "cellphone": {
+          "type": "string"
+        },
+        "logo": {
+          "type": "string",
+          "description": "Logotipo do estabelecimento"
+        },
+        "password": {
+          "type": "string",
+          "description": "chave de acesso ao sistema"
+        }
+      }
+    },
+    "OffersEntity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "integer",
+          "enum": ["1 - Desconto", "2 - Oferta"]
+        },
+        "qrHash": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "integer",
+          "enum": [
+            "1 - Ativo",
+            "2 - Inativo"
+          ]
+        },
+        "discount": {
+          "type": "number",
+          "format": "double"
+        },
+        "reward": {
+          "type": "string"
+        },
+        "restriction": {
+          "type": "string"
+        }
+      }
+    },
+    "ApplyLoyaltyEntity": {
+      "type": "object",
+      "properties": {
+        "loyaltyName": {
+          "type": "string"
+        },
+        "points": {
+          "type":"integer",
+          "description": "Número de pontos adquirido no programa de fidelidade"
+        },
+        "cardUrl": {
+          "type":"string",
+          "description": "URL para acesso ao cartão virtual do fidelidade"
+        }
+      }
+    }
+  },
+  "responses": {
+    "Default": {
+      "description": "Retorno padrão de execução de um serviço",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "executed": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "Error": {
+      "description": "Retorno padrão erros de execução de serviço",
+      "schema": {
+        "$ref": "#/definitions/ServiceResult"
+      }
+    },
+    "AuthResponse": {
+      "description": "Login efetuado com sucesso",
+      "schema": {                    
+        "type": "object",
+        "properties": {
+          "executed": {
+            "type": "boolean"
+          },
+          "result": {                      
+            "$ref": "#/definitions/AuthEntity"
+          }
+        }          
+      }
+    },
+    "GetLoyaltyResponse": {
+      "description": "Programa de fidelidade encontrado com sucesso",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "executed": {
+            "type": "boolean"
+          },
+          "result": {                      
+            "$ref": "#/definitions/LoyaltyEntity"
+          }
+        }
+      }
+    },
+    "ListLoyaltyResponse": {
+      "description": "Programas de fidelidades encontrado com sucesso",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "executed": {
+            "type": "boolean"
+          },
+          "result": {                      
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/LoyaltyEntity"
+            }
+          }
+        }
+      }
+    },
+    "ApplyLoyaltyResponse": {
+      "description": "Dados da pontuação no programa de fidelidade",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "executed": {
+            "type": "boolean"
+          },
+          "result": {                      
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/ApplyLoyaltyEntity"
+            }
+          }
+        }
+      }
+    },
+    "GetOffersResponse": {
+      "description": "Oferta encontrada com sucesso",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "executed": {
+            "type": "boolean"
+          },
+          "result": {                      
+            "$ref": "#/definitions/OffersEntity"
+          }
+        }
+      }
+    },
+    "ListOffersResponse": {
+      "description": "Lista de ofertas encontrado com sucesso",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "executed": {
+            "type": "boolean"
+          },
+          "result": {                      
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/OffersEntity"
+            }
+          }
+        }
+      }
+    },
+    "GetOwnerResponse": {
+      "description": "Cliente encontrada com sucesso",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "executed": {
+            "type": "boolean"
+          },
+          "result": {                      
+            "$ref": "#/definitions/OwnerEntity"
+          }
+        }
+      }
+    },
+    "ListOwnerResponse": {
+      "description": "Lista de clientes encontrado com sucesso",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "executed": {
+            "type": "boolean"
+          },
+          "result": {                      
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/OwnerEntity"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/auth": {
+      "post": {
+        "description":
+          "Retorna se o login foi realizado com sucesso e os dados de autenticação.",
+        "summary": "Efetua login na plataforma",
+        "tags": ["Auth"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "loginInfo",
+            "description": "Dados do usuário para acesso",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "user": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AuthResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/loyalty": {
+      "post": {
+        "description": "Retorna se o programa foi criado com sucesso",
+        "summary": "Criar novo programa de fidelidade",
+        "tags": ["Loyalty"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "loyalty",
+            "description": "Novo programa de fidelidade",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LoyaltyEntity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "description": "Retorna se o programa foi atualizado com sucesso",
+        "summary": "Atualiza os dados de um programa de fidelidade",
+        "tags": ["Loyalty"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "loyalty",
+            "description": "programa de fidelidade",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LoyaltyEntity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/loyalty/{id}": {
+      "get": {
+        "tags": ["Loyalty"],
+        "summary": "Busca um programa de fidelidade pelo ID",
+        "description": "Retorna os dados de um programa de fidelidade",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id do programa de fidelidade",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetLoyaltyResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Loyalty"],
+        "summary": "Inativa um programa de fidelidade",
+        "description": "Retorna se a operação foi executada com sucesso",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id do programa de fidelidade",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/loyalty/list/{owner}": {
+      "get": {
+        "tags": ["Loyalty"],
+        "summary": "Listagem de todos os programas de fidelidade de um cliente",
+        "description": "Retorna os dados de um programa de fidelidade",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "description": "identificador do dono do programa de fidelidade",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ListLoyaltyResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/loyalty/list/{owner}/{status}": {
+      "get": {
+        "tags": ["Loyalty"],
+        "summary": "Listagem dos programas de fidelidade pelo status",
+        "description": "Retorna os dados de um programa de fidelidade",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "description": "identificador do dono do programa de fidelidade",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "status",
+            "in": "path",
+            "description": "filtro de status do programa de fidelidade",
+            "required": true,
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+              "1 - Pendente",
+              "2 - Ativo",
+              "3 - Cancelado",
+              "4 - Finalizado"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ListLoyaltyResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/loyalty/activate": {
+      "post": {
+        "description": "Retorna se o programa foi ativado com sucesso",
+        "summary": "Altera o status de um programa de fidelidade para ativo",
+        "tags": ["Loyalty"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "id",
+            "description": "Id do programa de fidelidade",
+            "required": true,
+            "type": "integer"            
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/loyalty/deactivate": {
+      "post": {
+        "description": "Retorna se o programa foi inativado com sucesso",
+        "summary": "Altera o status de um programa de fidelidade para inativo",
+        "tags": ["Loyalty"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "id",
+            "description": "Id do programa de fidelidade",
+            "required": true,
+            "type": "integer"            
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/loyalty/{qrHash}/{userId}": {
+      "post": {
+        "description": "Retorna a confirmação da pontuação no programa de fidelidade",
+        "summary": "Realização a pontuação para o usuário identificado no programa de fidelidade",
+        "tags": ["Loyalty"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "qrHash",
+            "description": "Hash de identificação do programa de fidelidade",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "userId",
+            "description": "Id do usuário (Onde Ir) que pontuou no programa de fidelidade",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ApplyLoyaltyResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/offers": {
+      "post": {
+        "description": "Retorna se a oferta foi criado com sucesso",
+        "summary": "Criar nova oferta",
+        "tags": ["Offers"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "offer",
+            "description": "Nova oferta",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OffersEntity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "description": "Retorna se a oferta foi atualizado com sucesso",
+        "summary": "Atualiza os dados de uma oferta",
+        "tags": ["Offers"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "offer",
+            "description": "entidade da oferta",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/OffersEntity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/offers/{id}": {
+      "get": {
+        "tags": ["Offers"],
+        "summary": "Busca uma oferta pelo ID",
+        "description": "Retorna os dados de uma oferta",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id da oferta",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetOffersResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Offers"],
+        "summary": "Inativa uma oferta",
+        "description": "Retorna se a operação foi executada com sucesso",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id da oferta",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/offers/list/{owner}": {
+      "get": {
+        "tags": ["Offers"],
+        "summary": "Listagem de todos as ofertas de um cliente",
+        "description": "Retorna os dados das ofertas",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "description": "identificador do dono da oferta",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ListOffersResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/offers/list/{owner}/{status}": {
+      "get": {
+        "tags": ["Offers"],
+        "summary": "Listagem das ofertas pelo status",
+        "description": "Retorna os dados das ofertas",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "description": "identificador do dono da oferta",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "status",
+            "in": "path",
+            "description": "filtro de status da oferta",
+            "required": true,
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+              "1 - Ativa",
+              "2 - Inativa"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ListOffersResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/offers/activate": {
+      "post": {
+        "description": "Retorna se a oferta foi ativada com sucesso",
+        "summary": "Altera o status de uma oferta para ativo",
+        "tags": ["Offers"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "id",
+            "description": "Id da oferta",
+            "required": true,
+            "type": "integer"            
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/offers/deactivate": {
+      "post": {
+        "description": "Retorna se a oferta foi inativada com sucesso",
+        "summary": "Altera o status de uma oferta para inativo",
+        "tags": ["Offers"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "id",
+            "description": "Id da oferta",
+            "required": true,
+            "type": "integer"            
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/owner": {
+      "post": {
+        "description": "Retorna se o client foi criado com sucesso",
+        "summary": "Credenciar novo cliente",
+        "tags": ["Owner"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "owner",
+            "description": "Novo cliente",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OwnerEntity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "description": "Retorna se o cliente foi atualizado com sucesso",
+        "summary": "Atualiza os dados de um cliente",
+        "tags": ["Owner"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "owner",
+            "description": "entidade do cliente",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OwnerEntity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Owner"],
+        "summary": "Listagem de todos os clientes",
+        "description": "Retorna os dados dos clientes",
+        
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ListOwnerResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/owner/{id}": {
+      "get": {
+        "tags": ["Owner"],
+        "summary": "Busca um cliente pelo ID",
+        "description": "Retorna os dados de um cliente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id do cliente",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetOwnerResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Owner"],
+        "summary": "Inativa um cliente da plataforma",
+        "description": "Retorna se a operação foi executada com sucesso",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id do cliente",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/owner/reset": {
+      "post": {
+        "description": "Retorna se a senha foi resetada com sucesso",
+        "summary": "Reseta a senha de um cliente e envia por e-mail",
+        "tags": ["Owner"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "email",
+            "description": "E-mail do cliente que deseja resetar a senha",
+            "required": true,
+            "type": "string"            
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/owner/updatePassword": {
+      "post": {
+        "description": "Retorna se a senha foi alterada com sucesso",
+        "summary": "Altera a senha de um cliente",
+        "tags": ["Owner"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "memberId",
+            "description": "Id do cliente",
+            "required": true,
+            "type": "integer"            
+          },
+          {
+            "in": "body",
+            "name": "password",
+            "description": "Nova senha que será atualizada",
+            "required": true,
+            "type": "string"            
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    }
+  }
+}

@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import * as parser from "body-parser";
 import * as framework from "swt-framework";
 import * as expressValidator from "express-validator";
+import * as swaggerUi from 'swagger-ui-express';
+import * as swaggerDocument from '../../docs/swagger.json';
 
 import { IndexRoutes } from "../routes/index.route";
 import trafficControl from "../shared/network/traffic-control";
@@ -72,6 +74,9 @@ class Server {
 
     // Rota raiz - Controle de Versão
     this.express.use("/", indexRoutes.router);
+    // Rota raiz - Documentação da API
+    this.express.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
     // Rota com as interfaces de Autenticação
     this.express.use(this.apiVersion + "/auth", authRoutes.router);
     // Rota com as interfaces de manipulação de clientes (estabelecimentos)

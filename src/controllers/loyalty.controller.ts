@@ -314,4 +314,11 @@ export class LoyaltyController extends BaseController {
             }
         });
     }
+
+    /**
+     * Pontua em uma programa de fidelidade
+     */
+    public ApplyLoyalty = (req: Request, res: Response) => {
+        res.json(ServiceResult.HandlerSucess())
+    }
 }
