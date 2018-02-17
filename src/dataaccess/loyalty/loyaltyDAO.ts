@@ -18,12 +18,18 @@ export class LoyaltyDAO extends BaseDAO {
     private listByOwnerQuery: string = "SELECT * FROM LOYALTY WHERE OWNER_ID = ?";
     private listByOwnerStatusQuery: string = "SELECT * FROM LOYALTY WHERE STATUS = ? AND OWNER_ID = ?";
     private getLoyaltyQuery: string = "SELECT L.*, LU.* FROM LOYALTY L, LOYALTY_USAGE_TYPE LU WHERE L.ID = ? AND L.ID = LU.ID";
+    private getLoyaltyQrHashQuery: string = "SELECT L.*, LU.* FROM LOYALTY L, LOYALTY_USAGE_TYPE LU WHERE QR_HASH.ID = ? AND L.ID = LU.ID";
     private getLoyaltyValidity: string = "SELECT * FROM LOYALTY_VALIDITY WHERE LOYALTY_ID = ?";
     private deleteLoyaltyQuery: string = "DELETE FROM LOYALTY WHERE ID = ?";
     private deleteLoyaltyValidityQuery: string = "DELETE FROM LOYALTY_VALIDITY WHERE LOYALTY_ID = ?";
     private updateQuery: string = "UPDATE LOYALTY SET ? WHERE ID= ?"
     private updateUsageQuery: string = "UPDATE LOYALTY_USAGE_TYPE SET ? WHERE ID = ?";    
     private changeStatusQuery: string = "UPDATE LOYALTY SET STATUS = ? WHERE ID = ?";
+    private getLoyaltyProgramQuery: string = `SELECT L.ID, L.REGISTER_DATE, L.DISCHARGE, L.CARD_LINK, P.POINTS_DATE
+                                                FROM LOYALTY_PROGRAMS L, LOYALTY_POINTS P
+                                                WHERE L.ID = P.PROGRAM_ID
+                                                AND L.USER_ID = ? 
+                                                AND L.LOYALTY_ID = ?`
 
     constructor() {
         super();
@@ -137,6 +143,51 @@ export class LoyaltyDAO extends BaseDAO {
             }
         );
     }
+
+    /**
+     * Return an loyalty entity from database by the qrHash
+    */
+   public GetLoyaltyByHash(qrHash: string, callback) {
+    this.connDb.Connect(
+        connection => {
+
+            const query = connection.query(this.getLoyaltyQrHashQuery, qrHash, (error, results) => {
+                if (!error && results.length > 0) {
+                   
+                    let ownerItem = new LoyaltyEntity();
+                    ownerItem.fromMySqlDbEntity(results[0]);
+                    ownerItem.usageType = LoyaltyUsageType.getInstance();
+                    ownerItem.usageType.fromMySqlDbEntity(results[0]);
+                    
+                    connection.query(this.getLoyaltyValidity, ownerItem.id, (err, result) => {
+                        if (!error && result.length > 0) { 
+                            ownerItem.validity = result.map(item => {
+                                let validity = LoyaltyValidity.getInstance();
+                                validity.fromMySqlDbEntity(item);
+
+                                return validity;
+                            });
+
+                            connection.release();
+                            return callback(err, ownerItem);
+                        } else {
+                            connection.release();
+                            return callback(err, ownerItem);
+                        }
+                    })
+
+                    
+                } else {
+                    connection.release();
+                    return callback(error, null);
+                }
+            });
+        }, 
+        error => {
+            return callback(error, null);
+        }
+    );
+}
 
     /**
      * Remove an loyalty entity from database
@@ -297,13 +348,27 @@ export class LoyaltyDAO extends BaseDAO {
     public UpdateLoyaltyStatus = (loyaltyId: number, status: ELoyaltyStatus, callback) => {
         this.connDb.Connect(
             connection => {
-                const query = connection.query(this.changeStatusQuery, [status, loyaltyId], (error, results) => {
+                connection.query(this.changeStatusQuery, [status, loyaltyId], (error, results) => {
                     connection.release();
                     callback(error, results);
                 });
             },
             error => {
                 callback(error, null);
+            }
+        );
+    }
+
+    public GetUserLoyaltyProgram = (userId: number, loyaltyId: number, callback) => {
+        this.connDb.Connect(
+            connection => {
+                connection.query(this.getLoyaltyProgramQuery, [userId, loyaltyId], (error, results) => {
+                    connection.release();
+                    callback(error, results);
+                });
+            }, 
+            error => {
+
             }
         );
     }

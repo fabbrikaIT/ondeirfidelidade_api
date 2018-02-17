@@ -9,7 +9,10 @@ export enum ELoyaltyErrors {
     InvalidLoyaltyType = 5,
     NotImplementedLoyaltyType = 6,
     ProgramWithParticipants = 7,
-    LoyaltyNotFound = 8
+    LoyaltyNotFound = 8,
+    LoyaltyNotActive = 9,
+    LoyaltyOutOfDate = 10,
+    LoyaltyOutValidity = 11
 }
 
 export class LoyaltyErrorsProvider {
@@ -49,6 +52,18 @@ export class LoyaltyErrorsProvider {
             case ELoyaltyErrors.LoyaltyNotFound:
                 errorResult.ErrorCode = "LYT008";
                 errorResult.ErrorMessage = "O programa de fidelidade não foi encontrado.";
+                break;
+            case ELoyaltyErrors.LoyaltyNotActive:
+                errorResult.ErrorCode = "LYT009";
+                errorResult.ErrorMessage = "O programa de fidelidade não está ativo.";
+                break;
+            case ELoyaltyErrors.LoyaltyOutOfDate:
+                errorResult.ErrorCode = "LYT010";
+                errorResult.ErrorMessage = "O programa de fidelidade não está fora da data de uso.";
+                break;
+            case ELoyaltyErrors.LoyaltyOutValidity:
+                errorResult.ErrorCode = "LYT011";
+                errorResult.ErrorMessage = "O programa de fidelidade não está vigênte neste momento, confira os dias e horários para uso.";
                 break;
           default:
             break;

@@ -10,7 +10,13 @@ import { LoyaltyEntity, ELoyaltyStatus } from '../models/loyalty/loyalty';
 import { LoyaltyUsageType } from './../models/loyalty/loyaltyUsageType';
 import { LoyaltyValidity } from './../models/loyalty/loyaltyValidity';
 import { OwnerDAO } from '../dataaccess/owner/ownerDAO';
-
+/**
+ * 
+ * 
+ * @export
+ * @class LoyaltyController
+ * @extends {BaseController}
+ */
 export class LoyaltyController extends BaseController {
     private dataAccess = new LoyaltyDAO();
 
@@ -319,6 +325,83 @@ export class LoyaltyController extends BaseController {
      * Pontua em uma programa de fidelidade
      */
     public ApplyLoyalty = (req: Request, res: Response) => {
-        res.json(ServiceResult.HandlerSucess())
+        req.checkParams("qrHash").notEmpty();
+        req.checkParams("userId").isNumeric();
+
+        const errors = req.validationErrors();
+        if (errors) {
+            return res.json(LoyaltyErrorsProvider.GetErrorDetails(ELoyaltyErrors.InvalidLoyaltyId, errors));
+        }
+
+        const qrHash = req.params["qrHash"];
+        const userId = req.params["userId"];
+
+        // Buscando o programa de fidelidade
+        this.dataAccess.GetLoyaltyByHash(qrHash, (err, result: LoyaltyEntity) => {
+            if (err) {
+                return res.json(ServiceResult.HandlerError(err));
+            }
+
+            if (!result) {
+                return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyNotFound));
+            }
+
+            return this.ValidateProgramIsAvaliable(result, userId, res);            
+        });
+    }
+
+    /** Processando a pontuação em um programa de fidelidade */
+    private ValidateProgramIsAvaliable = (loyalty: LoyaltyEntity, userId: number, res: Response) => {
+        let today = new Date();
+
+        // Verifica se o programa de fidelidade é valido e ativo
+        if (loyalty.status !== ELoyaltyStatus.Active) {
+            return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyNotActive));
+        }
+
+        // Verifica se o programa de fidelidade não está vencido
+        if (loyalty.startDate <= today && loyalty.endDate >= today) {
+            return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyOutOfDate));
+        }
+
+        // Verifica a vigência do programa
+        if (loyalty.validity && loyalty.validity.length > 0) {
+            let validity = loyalty.validity.find(item => 
+                item.weekday === today.getDay()
+            );
+
+            if (!validity) {
+                return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyOutOfDate));
+            }
+
+            if(validity.startTime.getMilliseconds() > today.getMilliseconds() || validity.endTime.getMilliseconds() < today.getMilliseconds()) {
+                return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyOutOfDate));
+            }
+
+            return this.VerifyIdUserCanLoyalty(loyalty, userId, res);
+        }
+    }
+
+    private VerifyIdUserCanLoyalty = (loyalty: LoyaltyEntity, userId: number, res: Response) => {
+        
+        // Verifica se o usuário pode pontuar (Numero de pontuações no dia e tempo entre o uso)
+        this.dataAccess.GetUserLoyaltyProgram(userId, loyalty.id, (err, result) => {
+            if (err) {
+                return res.json(ServiceResult.HandlerError(err));
+            }
+
+            if (result && result.length > 0){
+                //const todayPoints = result.filter(item => item.)
+            } else {
+                return this.SubscribeUserLoyalty(loyalty, userId, res);
+            }
+        });
+
+
+        return res.json("Pode pontuar no fidelidade");
+    }
+
+    private SubscribeUserLoyalty = (loyalty: LoyaltyEntity, userId: number, res: Response) => {
+
     }
 }
