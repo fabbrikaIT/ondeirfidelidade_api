@@ -1,3 +1,4 @@
+import { LoyaltyPointsEntity } from './../models/loyalty/loyaltyPoints';
 import { Request, Response } from 'express';
 import * as passgen from 'generate-password';
 import {Md5} from 'ts-md5/dist/md5';
@@ -10,6 +11,10 @@ import { LoyaltyEntity, ELoyaltyStatus } from '../models/loyalty/loyalty';
 import { LoyaltyUsageType } from './../models/loyalty/loyaltyUsageType';
 import { LoyaltyValidity } from './../models/loyalty/loyaltyValidity';
 import { OwnerDAO } from '../dataaccess/owner/ownerDAO';
+import { UsersDAO } from '../dataaccess/user/usersDAO';
+import { UserEntity } from '../models/users/userEntity';
+import { OndeIrDAO } from '../dataaccess/ondeir/ondeIrDAO';
+import { LoyaltyProgramEntity } from '../models/loyalty/loyaltyProgram';
 /**
  * 
  * 
@@ -325,6 +330,32 @@ export class LoyaltyController extends BaseController {
      * Pontua em uma programa de fidelidade
      */
     public ApplyLoyalty = (req: Request, res: Response) => {
+        req.checkBody("qrHash").notEmpty();
+        req.checkBody("userId").isNumeric();
+
+        const errors = req.validationErrors();
+        if (errors) {
+            return res.json(LoyaltyErrorsProvider.GetErrorDetails(ELoyaltyErrors.InvalidLoyaltyId, errors));
+        }
+
+        const qrHash = req.body.qrHash;
+        const userId = req.body.userId;
+
+        // Buscando o programa de fidelidade
+        this.dataAccess.GetLoyaltyByHash(qrHash, (err, result: LoyaltyEntity) => {
+            if (err) {
+                return res.json(ServiceResult.HandlerError(err));
+            }
+
+            if (!result) {
+                return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyNotFound));
+            }
+
+            return this.ValidateProgramIsAvaliable(result, userId, res);            
+        });
+    }
+
+    public GetLoyaltyProgram = (req: Request, res: Response) => {
         req.checkParams("qrHash").notEmpty();
         req.checkParams("userId").isNumeric();
 
@@ -346,7 +377,51 @@ export class LoyaltyController extends BaseController {
                 return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyNotFound));
             }
 
-            return this.ValidateProgramIsAvaliable(result, userId, res);            
+            this.dataAccess.GetUserLoyaltyProgram(userId, result.id, (error, ret: LoyaltyProgramEntity) => {
+                if (error) {
+                    return res.json(ServiceResult.HandlerError(error));
+                }
+
+                const serviceResult = ServiceResult.HandlerSucess();
+                serviceResult.Result = ret;
+
+                return res.json(serviceResult);
+            });
+        });
+    }
+
+    public RedeemLoyaltyAward = (req: Request, res: Response) => {
+        req.checkBody("programId").isNumeric();
+
+        const errors = req.validationErrors();
+        if (errors) {
+            return res.json(LoyaltyErrorsProvider.GetErrorDetails(ELoyaltyErrors.InvalidLoyaltyId, errors));
+        }
+
+        const programId = req.body.programId;
+
+        this.dataAccess.GetLoyaltyProgram(programId, (err, result: LoyaltyProgramEntity) => {
+            if (err) {
+                return res.json(ServiceResult.HandlerError(err));
+            }
+
+            if (!result) {
+                return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyProgramNotFound));
+            }
+
+            this.dataAccess.GetLoyalty(result.LoyaltyId, res, (r, error, ret: LoyaltyEntity) => {
+                if (error) {
+                    return res.json(ServiceResult.HandlerError(error));
+                }
+
+                if (result.Points.length === ret.usageType.usageGoal) {
+                    result.Discharges += 1;
+
+                    return this.dataAccess.RedeemLoyaltyAward(result, res, this.processDefaultResult);
+                } else {
+                    return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyNotPointsGoal));
+                }
+            });
         });
     }
 
@@ -360,7 +435,7 @@ export class LoyaltyController extends BaseController {
         }
 
         // Verifica se o programa de fidelidade não está vencido
-        if (loyalty.startDate <= today && loyalty.endDate >= today) {
+        if (loyalty.startDate > today || (loyalty.endDate && loyalty.endDate < today)) {
             return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyOutOfDate));
         }
 
@@ -374,34 +449,136 @@ export class LoyaltyController extends BaseController {
                 return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyOutOfDate));
             }
 
-            if(validity.startTime.getMilliseconds() > today.getMilliseconds() || validity.endTime.getMilliseconds() < today.getMilliseconds()) {
+            if(this.getTimeValue(validity.startTime) > this.getTimeValue(today) || this.getTimeValue(validity.endTime) < this.getTimeValue(today)) {
                 return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyOutOfDate));
-            }
-
-            return this.VerifyIdUserCanLoyalty(loyalty, userId, res);
+            }            
         }
+
+        return this.VerifyIdUserCanLoyalty(loyalty, userId, res);
+    }
+
+    private getTimeValue(time: Date): number {
+        const hours = time.getHours();
+        const minutes = time.getMinutes();
+        const seconds = time.getSeconds();
+
+        return Math.floor(seconds + minutes * 60 + (hours*24*60));
     }
 
     private VerifyIdUserCanLoyalty = (loyalty: LoyaltyEntity, userId: number, res: Response) => {
         
         // Verifica se o usuário pode pontuar (Numero de pontuações no dia e tempo entre o uso)
-        this.dataAccess.GetUserLoyaltyProgram(userId, loyalty.id, (err, result) => {
+        this.dataAccess.GetUserLoyaltyProgram(userId, loyalty.id, (err, result: LoyaltyProgramEntity) => {
             if (err) {
                 return res.json(ServiceResult.HandlerError(err));
             }
 
-            if (result && result.length > 0){
-                //const todayPoints = result.filter(item => item.)
+            if (result) {
+                if (result.Points && result.Points.length > 0) {
+                    if (loyalty.usageType.usageGoal == result.Points.length) {
+                        return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyPointsGoal));
+                    }
+
+                    const pointsToday = result.Points.filter(x=> {
+                        return result.Points[0].PointDate.toLocaleDateString() === new Date().toLocaleDateString()
+                    });
+
+                    if (loyalty.dayLimit <= pointsToday.length) {
+                        return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyDayLimitExceeded));
+                    }
+
+                    const lastPoint = new Date(Math.max.apply(null, result.Points.map(x=> x.PointDate)));
+                    const difference = new Date() - lastPoint;
+
+                    if (loyalty.usageLimit) {
+                        if (loyalty.usageLimit >= Math.floor((difference/1000)/60)) {
+                            return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyUsageWait));
+                        }
+                    }
+                }
+                
+                return this.AddLoyaltyProgramPoints(result, res);
             } else {
                 return this.SubscribeUserLoyalty(loyalty, userId, res);
             }
         });
-
-
-        return res.json("Pode pontuar no fidelidade");
     }
 
-    private SubscribeUserLoyalty = (loyalty: LoyaltyEntity, userId: number, res: Response) => {
+    // Realiza a pontuação em um programa de fidalide
+    private AddLoyaltyProgramPoints(program: LoyaltyProgramEntity, res: Response) {
+        const point:  LoyaltyPointsEntity = LoyaltyPointsEntity.GetInstance();
+        point.ProgramId = program.Id;
 
+        this.dataAccess.AddLoyaltyProgramPoint(point, (err, result) => {
+            if (err) {
+                return res.json(ServiceResult.HandlerError(err));
+            }
+
+            program.Points.push(point);
+
+            const serviceResult = ServiceResult.HandlerSucess();
+            serviceResult.Result = program;
+
+            return res.json(serviceResult);
+        });
+    }
+
+    // Inscreve o usuário em um programa de fidelidade
+    private SubscribeUserLoyalty = (loyalty: LoyaltyEntity, userId: number, res: Response) => {
+        const userDA: UsersDAO = new UsersDAO();
+
+        userDA.GetUserByOndeIr(userId, res, (r, err, result) => {
+            if (err) {
+                return res.json(ServiceResult.HandlerError(err));
+            }
+
+            if (result)
+            {
+                const program = LoyaltyProgramEntity.GetInstance();
+                program.LoyaltyId = loyalty.id;
+                program.UserId = result.Id;
+                program.CardLink = `http://ondeircidades.com.br/fidelidade/card/${loyalty.qrHash}/${result.Id}`;
+
+                this.dataAccess.SubscribeUserLoyaltyProgram(program, (error, ret) => {
+                    if (error) {
+                        return res.json(ServiceResult.HandlerError(error));
+                    }
+
+                    program.Id = ret.insertId
+                    return this.AddLoyaltyProgramPoints(program, res);
+                })
+            } 
+            else 
+            {
+                return this.RegisterNewUser(loyalty, userId, res);
+            }
+        });
+        
+        
+    }
+
+    // Adiciona um novo usuário do Onde Ir no programa de fidelidade
+    private RegisterNewUser = (loyalty: LoyaltyEntity, userId: number, res: Response) => {
+        const userDA: UsersDAO = new UsersDAO();
+        const ondeIrDA: OndeIrDAO = new OndeIrDAO();
+
+        let user = UserEntity.GetInstance();
+
+        // Buscar usuário do Onde Ir
+        ondeIrDA.GetUser(userId, (err, ret) => {
+            if (err || !ret) {
+                return res.json(ServiceResult.HandlerError(err));
+            }
+
+            user = ret;
+
+            userDA.Create(user, (err, result) => {
+                if (err) {
+                    return res.json(ServiceResult.HandlerError(err));
+                }
+    
+                this.SubscribeUserLoyalty(loyalty, userId, res);
+            });
+        });
     }
 }

@@ -23,6 +23,8 @@ export class LoyaltyRoutes extends BaseRoute {
     this.router.delete("/:id", this.controller.DeleteLoyalty);
 
     // Interfaces de pontuação e consulta 
-    this.router.post("/:qrHash/:userId", this.controller.ApplyLoyalty);
+    this.router.post("/apply", this.controller.ApplyLoyalty);
+    this.router.post("/redeem", this.controller.RedeemLoyaltyAward);
+    this.router.get("/:qrHash/:userId", this.controller.GetLoyaltyProgram);
   }
 }

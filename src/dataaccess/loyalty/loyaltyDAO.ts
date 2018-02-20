@@ -1,4 +1,3 @@
-import { ELoyaltyStatus } from './../../models/loyalty/loyalty';
 import { Sequelize } from 'sequelize';
 import { Response } from 'express';
 
@@ -8,6 +7,9 @@ import { DataAccessResult } from '../dataAccess.result';
 import { LoyaltyEntity } from '../../models/loyalty/loyalty';
 import { LoyaltyValidity } from '../../models/loyalty/loyaltyValidity';
 import { LoyaltyUsageType } from '../../models/loyalty/loyaltyUsageType';
+import { ELoyaltyStatus } from './../../models/loyalty/loyalty';
+import { LoyaltyProgramEntity } from '../../models/loyalty/loyaltyProgram';
+import { LoyaltyPointsEntity } from '../../models/loyalty/loyaltyPoints';
 
 export class LoyaltyDAO extends BaseDAO {
     // Query de acesso aos dados
@@ -18,18 +20,28 @@ export class LoyaltyDAO extends BaseDAO {
     private listByOwnerQuery: string = "SELECT * FROM LOYALTY WHERE OWNER_ID = ?";
     private listByOwnerStatusQuery: string = "SELECT * FROM LOYALTY WHERE STATUS = ? AND OWNER_ID = ?";
     private getLoyaltyQuery: string = "SELECT L.*, LU.* FROM LOYALTY L, LOYALTY_USAGE_TYPE LU WHERE L.ID = ? AND L.ID = LU.ID";
-    private getLoyaltyQrHashQuery: string = "SELECT L.*, LU.* FROM LOYALTY L, LOYALTY_USAGE_TYPE LU WHERE QR_HASH.ID = ? AND L.ID = LU.ID";
+    private getLoyaltyQrHashQuery: string = "SELECT L.*, LU.* FROM LOYALTY L, LOYALTY_USAGE_TYPE LU WHERE L.QR_HASH = ? AND L.ID = LU.ID";
     private getLoyaltyValidity: string = "SELECT * FROM LOYALTY_VALIDITY WHERE LOYALTY_ID = ?";
     private deleteLoyaltyQuery: string = "DELETE FROM LOYALTY WHERE ID = ?";
     private deleteLoyaltyValidityQuery: string = "DELETE FROM LOYALTY_VALIDITY WHERE LOYALTY_ID = ?";
     private updateQuery: string = "UPDATE LOYALTY SET ? WHERE ID= ?"
     private updateUsageQuery: string = "UPDATE LOYALTY_USAGE_TYPE SET ? WHERE ID = ?";    
     private changeStatusQuery: string = "UPDATE LOYALTY SET STATUS = ? WHERE ID = ?";
-    private getLoyaltyProgramQuery: string = `SELECT L.ID, L.REGISTER_DATE, L.DISCHARGE, L.CARD_LINK, P.POINTS_DATE
+    private getLoyaltyProgramQuery: string = `SELECT L.ID, L.REGISTER_DATE, L.DISCHARGE, L.CARD_LINK, P.POINTS_DATE, L.LOYALTY_ID, L.USER_ID
                                                 FROM LOYALTY_PROGRAMS L, LOYALTY_POINTS P
                                                 WHERE L.ID = P.PROGRAM_ID
-                                                AND L.USER_ID = ? 
-                                                AND L.LOYALTY_ID = ?`
+                                                  AND L.LOYALTY_ID = ?
+                                                  AND EXISTS (SELECT 1 FROM USERS U
+                                                               WHERE U.ID = L.USER_ID
+                                                                 AND U.ONDE_IR_ID = ?)`;
+    private getLoyaltyProgramByIdQuery: string = `SELECT L.ID, L.REGISTER_DATE, L.DISCHARGE, L.CARD_LINK, P.POINTS_DATE, L.LOYALTY_ID, L.USER_ID
+                                                FROM LOYALTY_PROGRAMS L, LOYALTY_POINTS P
+                                                WHERE L.ID = P.PROGRAM_ID
+                                                AND L.ID = ?`;
+    private subscribeUserLoyaltyProgramQuery: string = "INSERT INTO LOYALTY_PROGRAMS SET ?";
+    private addLoyaltyProgramPointQuery: string = "INSERT INTO LOYALTY_POINTS SET ?";
+    private updateLoyaltyProgramQuery: string = "UPDATE LOYALTY_PROGRAMS SET ? WHERE ID = ?";
+    private clearLoyaltyProgramPointsQuery: string = "DELETE FROM LOYALTY_POINTS WHERE PROGRAM_ID = ?";
 
     constructor() {
         super();
@@ -362,13 +374,115 @@ export class LoyaltyDAO extends BaseDAO {
     public GetUserLoyaltyProgram = (userId: number, loyaltyId: number, callback) => {
         this.connDb.Connect(
             connection => {
-                connection.query(this.getLoyaltyProgramQuery, [userId, loyaltyId], (error, results) => {
+                connection.query(this.getLoyaltyProgramQuery, [loyaltyId, userId], (error, results) => {
+                    if (error || results.length == 0) {
+                        connection.release();
+                        return callback(error, null);
+                    }
+
+                    const program: LoyaltyProgramEntity = LoyaltyProgramEntity.GetInstance();
+                    program.fromMySqlDbEntity(results[0]);
+
+                    results.forEach(element => {
+                        let point: LoyaltyPointsEntity = LoyaltyPointsEntity.GetInstance();
+                        point.fromMySqlDbEntity(element);
+
+                        program.Points.push(point);
+                    });
+
                     connection.release();
-                    callback(error, results);
+                    return callback(error, program);
                 });
             }, 
             error => {
+                return callback(error, null);
+            }
+        );
+    }
 
+    public GetLoyaltyProgram = (programId: number, callback) => {
+        this.connDb.Connect(
+            connection => {
+                connection.query(this.getLoyaltyProgramByIdQuery, programId, (error, results) => {
+                    if (error || results.length == 0) {
+                        connection.release();
+                        return callback(error, null);
+                    }
+
+                    const program: LoyaltyProgramEntity = LoyaltyProgramEntity.GetInstance();
+                    program.fromMySqlDbEntity(results[0]);
+
+                    results.forEach(element => {
+                        let point: LoyaltyPointsEntity = LoyaltyPointsEntity.GetInstance();
+                        point.fromMySqlDbEntity(element);
+
+                        program.Points.push(point);
+                    });
+
+                    connection.release();
+                    return callback(error, program);
+                });
+            }, 
+            error => {
+                return callback(error, null);
+            }
+        );
+    }
+
+    /** Atualiza o número de resgates e limpa as pontuações de um programa */
+    public RedeemLoyaltyAward = (program: LoyaltyProgramEntity, res: Response, callback) => {
+        this.connDb.Connect(
+            connection => {
+                const dbEntity = program.toMysqlDbEntity(false);
+
+                connection.query(this.clearLoyaltyProgramPointsQuery, program.Id, (error, results) => {
+                    if (error) {
+                        connection.release();
+                        return callback(res, error, null);
+                    }
+
+                    connection.query(this.updateLoyaltyProgramQuery, [dbEntity, program.Id], (err, ret) => {
+                        connection.release();
+                        return callback(res, err, ret);
+                    });
+                });
+            }, 
+            error => {
+                return callback(res, error, null);
+            }
+        );
+    }
+
+    /** Cria uma nova inscrição em um programa de fidelidade */
+    public SubscribeUserLoyaltyProgram = (program: LoyaltyProgramEntity, callback)  => {
+        this.connDb.Connect(
+            connection => {
+                const dbEntity = program.toMysqlDbEntity(true);
+
+                const query = connection.query(this.subscribeUserLoyaltyProgramQuery, dbEntity, (error, results) => {
+                    connection.release();
+                    return callback(error, results);
+                });
+            }, 
+            error => {
+                return callback(error, null);
+            }
+        );
+    }
+
+    /** realiza a pontuação em um programa de fidelidade */
+    public AddLoyaltyProgramPoint = (point: LoyaltyPointsEntity, callback)  => {
+        this.connDb.Connect(
+            connection => {
+                const dbEntity = point.toMysqlDbEntity(true);
+
+                const query = connection.query(this.addLoyaltyProgramPointQuery, dbEntity, (error, results) => {
+                    connection.release();
+                    return callback(error, results);
+                });
+            }, 
+            error => {
+                callback(error, null);
             }
         );
     }

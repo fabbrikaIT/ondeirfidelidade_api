@@ -697,7 +697,7 @@
         }
       }
     },
-    "/loyalty/{qrHash}/{userId}": {
+    "/loyalty/apply": {
       "post": {
         "description": "Retorna a confirmação da pontuação no programa de fidelidade",
         "summary": "Realização a pontuação para o usuário identificado no programa de fidelidade",

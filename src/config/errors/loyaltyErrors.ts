@@ -12,7 +12,12 @@ export enum ELoyaltyErrors {
     LoyaltyNotFound = 8,
     LoyaltyNotActive = 9,
     LoyaltyOutOfDate = 10,
-    LoyaltyOutValidity = 11
+    LoyaltyOutValidity = 11,
+    LoyaltyDayLimitExceeded = 12,
+    LoyaltyUsageWait = 13,
+    LoyaltyPointsGoal = 14,
+    LoyaltyProgramNotFound = 15,
+    LoyaltyNotPointsGoal = 16
 }
 
 export class LoyaltyErrorsProvider {
@@ -59,11 +64,31 @@ export class LoyaltyErrorsProvider {
                 break;
             case ELoyaltyErrors.LoyaltyOutOfDate:
                 errorResult.ErrorCode = "LYT010";
-                errorResult.ErrorMessage = "O programa de fidelidade não está fora da data de uso.";
+                errorResult.ErrorMessage = "Não é possível pontuar no programa de fidelidade na data e hora atuais.";
                 break;
             case ELoyaltyErrors.LoyaltyOutValidity:
                 errorResult.ErrorCode = "LYT011";
                 errorResult.ErrorMessage = "O programa de fidelidade não está vigênte neste momento, confira os dias e horários para uso.";
+                break;
+            case ELoyaltyErrors.LoyaltyDayLimitExceeded:
+                errorResult.ErrorCode = "LYT012";
+                errorResult.ErrorMessage = "Limite do uso diário do programa excedido.";
+                break;
+            case ELoyaltyErrors.LoyaltyUsageWait:
+                errorResult.ErrorCode = "LYT013";
+                errorResult.ErrorMessage = "Tempo de espera desde última utilização não respeitado.";
+                break;
+            case ELoyaltyErrors.LoyaltyPointsGoal:
+                errorResult.ErrorCode = "LYT014";
+                errorResult.ErrorMessage = "Número de pontos para resgate alcançado, mostre o cartão no local para retirar sua recompensa.";
+                break;
+            case ELoyaltyErrors.LoyaltyProgramNotFound:
+                errorResult.ErrorCode = "LYT015";
+                errorResult.ErrorMessage = "Programa de fidelidade não encontrado.";
+                break;
+            case ELoyaltyErrors.LoyaltyNotPointsGoal:
+                errorResult.ErrorCode = "LYT016";
+                errorResult.ErrorMessage = "Pontuação necessária para resgate ainda não alcançada.";
                 break;
           default:
             break;
