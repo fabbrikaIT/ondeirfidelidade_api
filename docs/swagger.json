@@ -301,6 +301,39 @@
           "description": "URL para acesso ao cartão virtual do fidelidade"
         }
       }
+    },
+    "LoyaltyProgramEntity": {
+      "type": "object",
+      "properties": {
+        "Id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "UserId": {
+          "type":"integer",
+          "description": "Usuário do programa de fidelidade"
+        },
+        "LoyaltyId": {
+          "type":"integer",
+          "description": "Identificador do programa de fidelidade"
+        },
+        "RegisterDate": {
+          "type":"string",
+          "format": "date-time"
+        },
+        "Discharges": {
+          "type":"integer",
+          "description": "Número de resgates de prêmio já efetuados"
+        },
+        "CardLink": {
+          "type":"string",
+          "description": "URL para acesso ao cartão virtual do fidelidade"
+        },
+        "Points": {
+          "type": "array",
+          "description": "List com as pontuações efetuadas"
+        }
+      }
     }
   },
   "responses": {
@@ -441,6 +474,20 @@
             "items": {
               "$ref": "#/definitions/OwnerEntity"
             }
+          }
+        }
+      }
+    },
+    "GetLoyaltyProgramResponse": {
+      "description": "Dados de utilização do programa de fidelidade",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "executed": {
+            "type": "boolean"
+          },
+          "result": {                      
+            "$ref": "#/definitions/LoyaltyProgramEntity"
           }
         }
       }
@@ -722,6 +769,88 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ApplyLoyaltyResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/loyalty/redeem": {
+      "post": {
+        "description": "Retorna a confirmação a utilização da pontuação do fidelidade",
+        "summary": "Realização o resgate da premiação de um programa de fidelidade",
+        "tags": ["Loyalty"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "boby",
+            "name": "programId",
+            "description": "Número identificação da utilização do programa de fidelidade",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/loyalty/{qrHash}/{userId}": {
+      "get": {
+        "tags": ["Loyalty"],
+        "summary": "Busca dos dados de pontuação em um programa de fidelidade",
+        "description": "Retorna os dados de utilização de um programa de fidelidade para um usuário",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "id do usuário no Onde Ir",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "qrHash",
+            "in": "path",
+            "description": "chave do programa de fidelidade",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetLoyaltyProgramResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/loyalty/search/{cityId}": {
+      "get": {
+        "tags": ["Loyalty"],
+        "summary": "Busca os programas de fidelidade ativos em uma cidade",
+        "description": "Retorna a lista de programas de fidelidade ativos na cidade",
+        "parameters": [
+          {
+            "name": "cityId",
+            "in": "path",
+            "description": "Id da cidade no Onde Ir",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ListLoyaltyResponse"
           },
           "422": {
             "$ref": "#/responses/Error"

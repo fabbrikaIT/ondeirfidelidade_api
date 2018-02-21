@@ -425,6 +425,20 @@ export class LoyaltyController extends BaseController {
         });
     }
 
+    /** Busca de programas de fidelidade por usuários */
+    public SearchLoyaltyByCity = (req: Request, res: Response) => {
+        req.checkParams("cityId").isNumeric();
+
+        const errors = req.validationErrors();
+        if (errors) {
+            return res.json(LoyaltyErrorsProvider.GetErrorDetails(ELoyaltyErrors.InvalidOwnerId, errors));
+        }
+
+        const cityId = req.params["cityId"];
+
+        this.dataAccess.SearchLoyaltyByCity(cityId, res, this.processDefaultResult);
+    } 
+
     /** Processando a pontuação em um programa de fidelidade */
     private ValidateProgramIsAvaliable = (loyalty: LoyaltyEntity, userId: number, res: Response) => {
         let today = new Date();

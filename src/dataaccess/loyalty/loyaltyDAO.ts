@@ -28,12 +28,12 @@ export class LoyaltyDAO extends BaseDAO {
     private updateUsageQuery: string = "UPDATE LOYALTY_USAGE_TYPE SET ? WHERE ID = ?";    
     private changeStatusQuery: string = "UPDATE LOYALTY SET STATUS = ? WHERE ID = ?";
     private getLoyaltyProgramQuery: string = `SELECT L.ID, L.REGISTER_DATE, L.DISCHARGE, L.CARD_LINK, P.POINTS_DATE, L.LOYALTY_ID, L.USER_ID
-                                                FROM LOYALTY_PROGRAMS L, LOYALTY_POINTS P
-                                                WHERE L.ID = P.PROGRAM_ID
-                                                  AND L.LOYALTY_ID = ?
-                                                  AND EXISTS (SELECT 1 FROM USERS U
-                                                               WHERE U.ID = L.USER_ID
-                                                                 AND U.ONDE_IR_ID = ?)`;
+                                                FROM LOYALTY_PROGRAMS L 
+                                                LEFT JOIN LOYALTY_POINTS P ON L.ID = P.PROGRAM_ID
+                                                WHERE L.LOYALTY_ID = ?
+                                                AND EXISTS (SELECT 1 FROM USERS U
+                                                            WHERE U.ID = L.USER_ID
+                                                                AND U.ONDE_IR_ID = ?)`;
     private getLoyaltyProgramByIdQuery: string = `SELECT L.ID, L.REGISTER_DATE, L.DISCHARGE, L.CARD_LINK, P.POINTS_DATE, L.LOYALTY_ID, L.USER_ID
                                                 FROM LOYALTY_PROGRAMS L, LOYALTY_POINTS P
                                                 WHERE L.ID = P.PROGRAM_ID
@@ -42,6 +42,14 @@ export class LoyaltyDAO extends BaseDAO {
     private addLoyaltyProgramPointQuery: string = "INSERT INTO LOYALTY_POINTS SET ?";
     private updateLoyaltyProgramQuery: string = "UPDATE LOYALTY_PROGRAMS SET ? WHERE ID = ?";
     private clearLoyaltyProgramPointsQuery: string = "DELETE FROM LOYALTY_POINTS WHERE PROGRAM_ID = ?";
+    private searchLoyaltyByCityQuery: string = `SELECT L.*, LU.* FROM LOYALTY L, LOYALTY_USAGE_TYPE LU
+                                                WHERE L.ID = LU.ID
+                                                AND STATUS = 2
+                                                AND START_DATE <= SYSDATE()
+                                                AND (END_DATE IS NULL OR END_DATE >= SYSDATE())
+                                                AND EXISTS (SELECT 1 FROM OWNER O
+                                                                        WHERE O.ID = L.OWNER_ID
+                                                                            AND O.ONDE_IR_CITY = ?)`;
 
     constructor() {
         super();
@@ -109,12 +117,12 @@ export class LoyaltyDAO extends BaseDAO {
                 callback(res, error, null);
             }
         );
-    }
+    } 
 
     /**
      * Return an loyalty entity from database
     */
-    public GetLoyalty(id: number, res: Response,  callback) {
+    public GetLoyalty = (id: number, res: Response,  callback) => {
         this.connDb.Connect(
             connection => {
 
@@ -384,10 +392,12 @@ export class LoyaltyDAO extends BaseDAO {
                     program.fromMySqlDbEntity(results[0]);
 
                     results.forEach(element => {
-                        let point: LoyaltyPointsEntity = LoyaltyPointsEntity.GetInstance();
-                        point.fromMySqlDbEntity(element);
+                        if (element.POINTS_DATE) {
+                            let point: LoyaltyPointsEntity = LoyaltyPointsEntity.GetInstance();
+                            point.fromMySqlDbEntity(element);
 
-                        program.Points.push(point);
+                            program.Points.push(point);
+                        }
                     });
 
                     connection.release();
@@ -483,6 +493,37 @@ export class LoyaltyDAO extends BaseDAO {
             }, 
             error => {
                 callback(error, null);
+            }
+        );
+    }
+
+    /** Buscas de programas de fidelidade - Usuários */
+    public SearchLoyaltyByCity = (cityId: number, res: Response, callback) => {
+        this.connDb.Connect(
+            connection => {
+                connection.query(this.searchLoyaltyByCityQuery, cityId, (error, results) => {
+                    if (!error && results.length > 0) { 
+                        let list: Array<LoyaltyEntity>;
+
+                        list = results.map(item => {
+                            let loyaltyItem = new LoyaltyEntity();
+                            loyaltyItem.fromMySqlDbEntity(item);
+                            loyaltyItem.usageType = LoyaltyUsageType.getInstance();
+                            loyaltyItem.usageType.fromMySqlDbEntity(item);
+
+                            return loyaltyItem;
+                        });
+
+                        connection.release();
+                        return callback(res, error, list);
+                    } else {
+                        connection.release();
+                        return callback(res, error, null);
+                    }
+                });
+            }, 
+            error => {
+                return callback(res, error, null);
             }
         );
     }

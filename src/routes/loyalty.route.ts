@@ -11,6 +11,9 @@ export class LoyaltyRoutes extends BaseRoute {
   }
 
   private buildRoutes() {
+    // Interfaces de busca de programas de fidelidade
+    this.router.get("/search/:cityId", this.controller.SearchLoyaltyByCity);
+
     this.router.get("/:id", this.controller.GetLoyalty);
     this.router.get("/list/:owner", this.controller.ListLoyalty);
     this.router.get("/list/:owner/:status", this.controller.ListLoyaltyStatus);

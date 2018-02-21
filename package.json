@@ -1,6 +1,6 @@
 {
   "name": "ondeir_fidelidade_api",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Api de serviços do sistema do Onde Ir Fidelidade",
   "main": "dist/index.js",
   "author": "Fabbrika",
