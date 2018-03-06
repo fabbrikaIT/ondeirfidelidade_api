@@ -61,7 +61,20 @@ export class LoyaltyController extends BaseController {
         const status = req.params["status"];
 
         this.dataAccess.ListLoyaltyStatus(ownerId, status, res, this.processDefaultResult);
-    }  
+    } 
+    
+    public ListUserLoyalty = (req: Request, res: Response) => {
+        req.checkParams("id").isNumeric();
+
+        const errors = req.validationErrors();
+        if (errors) {
+            return res.json(LoyaltyErrorsProvider.GetErrorDetails(ELoyaltyErrors.InvalidOwnerId, errors));
+        }
+
+        const userId = req.params["id"];
+
+        this.dataAccess.ListUserLoyalty(userId, res, this.processDefaultResult);
+    }
 
     /**
      * GetLoyalty
@@ -551,7 +564,7 @@ export class LoyaltyController extends BaseController {
                 const program = LoyaltyProgramEntity.GetInstance();
                 program.LoyaltyId = loyalty.id;
                 program.UserId = result.Id;
-                program.CardLink = `http://ondeircidades.com.br/fidelidade/card/${loyalty.qrHash}/${result.Id}`;
+                program.CardLink = `http://ondeircidades.com.br/fidelidade/#/card/${loyalty.qrHash}/${result.Id}`;
 
                 this.dataAccess.SubscribeUserLoyaltyProgram(program, (error, ret) => {
                     if (error) {

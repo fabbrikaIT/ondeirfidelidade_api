@@ -10,7 +10,8 @@ export enum EOffersErrors {
     OwnerNotFound = 6,
     InvalidOfferId = 7,
     HasValidCounpons = 8,
-    OfferNotFound = 9
+    OfferNotFound = 9,
+    CouponAlredyExists = 10
 }
 
 export class OffersErrorsProvider {
@@ -54,6 +55,10 @@ export class OffersErrorsProvider {
     case EOffersErrors.OfferNotFound:
         errorResult.ErrorCode = "OFF009";
         errorResult.ErrorMessage = "A Oferta informada não foi encontrada.";
+        break;
+    case EOffersErrors.CouponAlredyExists:
+        errorResult.ErrorCode = "OFF010";
+        errorResult.ErrorMessage = "Já foi gerado um cupom para esta oferta anteriormente.";
         break;
       default:
         break;

@@ -50,6 +50,14 @@ export class LoyaltyDAO extends BaseDAO {
                                                 AND EXISTS (SELECT 1 FROM OWNER O
                                                                         WHERE O.ID = L.OWNER_ID
                                                                             AND O.ONDE_IR_CITY = ?)`;
+    private listUserLoyaltyQuery: string = `SELECT LP.ID AS PROGRAM_ID,L.ID, L.NAME, L.START_DATE, L.END_DATE, L.TYPE, L.DAY_LIMIT, L.USAGE_LIMIT, L.QR_HASH,
+                                                    LU.USAGE_GOAL, LU.USAGE_REWARD
+                                                FROM LOYALTY_PROGRAMS LP, LOYALTY L, LOYALTY_USAGE_TYPE LU
+                                                WHERE LP.LOYALTY_ID = L.ID
+                                                AND L.ID = LU.ID
+                                                AND EXISTS (SELECT 1 FROM USERS U
+                                                            WHERE U.ID = LP.USER_ID
+                                                            AND U.ONDE_IR_ID = ?)`;
 
     constructor() {
         super();
@@ -502,6 +510,37 @@ export class LoyaltyDAO extends BaseDAO {
         this.connDb.Connect(
             connection => {
                 connection.query(this.searchLoyaltyByCityQuery, cityId, (error, results) => {
+                    if (!error && results.length > 0) { 
+                        let list: Array<LoyaltyEntity>;
+
+                        list = results.map(item => {
+                            let loyaltyItem = new LoyaltyEntity();
+                            loyaltyItem.fromMySqlDbEntity(item);
+                            loyaltyItem.usageType = LoyaltyUsageType.getInstance();
+                            loyaltyItem.usageType.fromMySqlDbEntity(item);
+
+                            return loyaltyItem;
+                        });
+
+                        connection.release();
+                        return callback(res, error, list);
+                    } else {
+                        connection.release();
+                        return callback(res, error, null);
+                    }
+                });
+            }, 
+            error => {
+                return callback(res, error, null);
+            }
+        );
+    }
+
+    /** Busca os programas de fidelidade de um usuário */
+    public ListUserLoyalty = (userId: number, res: Response, callback) => {
+        this.connDb.Connect(
+            connection => {
+                connection.query(this.listUserLoyaltyQuery, userId, (error, results) => {
                     if (!error && results.length > 0) { 
                         let list: Array<LoyaltyEntity>;
 
