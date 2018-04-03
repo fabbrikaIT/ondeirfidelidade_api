@@ -18,7 +18,7 @@ export class ReportsController extends BaseController {
         if (ownerId >= 0) {
             return this.dataAccess.GetLoyaltyNumber(ownerId, res, this.processDefaultResult);
         } else {
-            return;
+            return res.json(ServiceResult.HandlerError("Owner Not Found"));
         }
     }
 
@@ -28,16 +28,28 @@ export class ReportsController extends BaseController {
         if (ownerId >= 0) {
             return this.dataAccess.GetOffersNumber(ownerId, res, this.processDefaultResult);
         } else {
-            return;
+            return res.json(ServiceResult.HandlerError("Owner Not Found"));
         }
     }
 
     public GetClientsNumber = (req: Request, res: Response) => {
+        const ownerId = this.GetOwnerId(req, res);
 
+        if (ownerId >= 0) {
+            return this.dataAccess.GetProgramsNumber(ownerId, res, this.processDefaultResult);
+        } else {
+            return res.json(ServiceResult.HandlerError("Owner Not Found"));
+        }
     }
 
     public GetCouponsNumber = (req: Request, res: Response) => {
+        const ownerId = this.GetOwnerId(req, res);
 
+        if (ownerId >= 0) {
+            return this.dataAccess.GetCouponsNumber(ownerId, res, this.processDefaultResult);
+        } else {
+            return res.json(ServiceResult.HandlerError("Owner Not Found"));
+        }
     }
 
     // Metodos de apoio

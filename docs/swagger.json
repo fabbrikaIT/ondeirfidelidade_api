@@ -858,6 +858,31 @@
         }
       }
     },
+    "/loyalty/user/{id}": {
+      "get": {
+        "tags": ["Loyalty"],
+        "summary": "Busca os programas de fidelidade que o usuário está participando",
+        "description": "Retorna a lista de programas de fidelidade que o usuário está participando",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id usuário logado no Onde Ir",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ListLoyaltyResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
     "/offers": {
       "post": {
         "description": "Retorna se a oferta foi criado com sucesso",
@@ -1020,6 +1045,56 @@
         }
       }
     },
+    "/offers/search/{cityId}": {
+      "get": {
+        "tags": ["Offers"],
+        "summary": "Busca as ofertas ativas em uma cidade",
+        "description": "Retorna a lista de ofertas ativas na cidade",
+        "parameters": [
+          {
+            "name": "cityId",
+            "in": "path",
+            "description": "Id da cidade no Onde Ir",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ListOffersResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/offers/user/{id}": {
+      "get": {
+        "tags": ["Offers"],
+        "summary": "Busca as ofertas que o usuário gerou cupons de desconto",
+        "description": "Retorna a lista de ofertas que o usuário está participando",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id usuário logado no Onde Ir",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ListOffersResponse"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
     "/offers/activate": {
       "post": {
         "description": "Retorna se a oferta foi ativada com sucesso",
@@ -1056,6 +1131,70 @@
             "in": "body",
             "name": "id",
             "description": "Id da oferta",
+            "required": true,
+            "type": "integer"            
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/offers/createCoupon": {
+      "post": {
+        "description": "Retorna se o cupom foi gerado com sucesso",
+        "summary": "Realizar a geração de um cupom de desconto  para um usuário",
+        "tags": ["Offers"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "offerId",
+            "description": "Id da oferta",
+            "required": true,
+            "type": "integer"            
+          },
+          {
+            "in": "body",
+            "name": "userId",
+            "description": "Id do usuário logado no Onde Ir",
+            "required": true,
+            "type": "integer"            
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Default"
+          },
+          "422": {
+            "$ref": "#/responses/Error"
+          }
+        }
+      }
+    },
+    "/offers/useCoupon": {
+      "post": {
+        "description": "Retorna se o cupom foi utilizado com sucesso",
+        "summary": "Realizar a utilização de um cupom de desconto",
+        "tags": ["Offers"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "offerId",
+            "description": "Id da oferta",
+            "required": true,
+            "type": "integer"            
+          },
+          {
+            "in": "body",
+            "name": "userId",
+            "description": "Id do usuário logado no Onde Ir",
             "required": true,
             "type": "integer"            
           }

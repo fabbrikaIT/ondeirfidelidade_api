@@ -1,3 +1,4 @@
+import { OndeIrDAO } from './../dataaccess/ondeir/ondeIrDAO';
 import { AuthEntity } from './../models/auth/authEntity';
 import { Request, Response } from "express";
 
@@ -8,6 +9,7 @@ import { DataAccessResult } from "../dataaccess/dataAccess.result";
 import { AuthDAO } from '../dataaccess/auth/authDAO';
 import { AuthUserEntity } from '../models/auth/authUser'
 import { Md5 } from 'ts-md5/dist/md5';
+import { ServiceResult } from '../models/serviceResult.model';
 
 export class AuthController extends BaseController {
     private ownerAccess: AuthDAO = new AuthDAO();
@@ -66,6 +68,20 @@ export class AuthController extends BaseController {
         } else {
             res.json(AuthErrorsProvider.GetError(EAuthErrors.InvalidUserOrPassword));
         }  
+    }
+
+    public OndeIrUser = (req: Request, res: Response) => {
+        const userid = req.params["userid"];
+
+        if (userid > 0) {
+            const dataAccess: OndeIrDAO = new OndeIrDAO();
+            dataAccess.GetUser(userid, (err, ret) => {
+                res.json(ret);
+            });
+        } 
+        else {
+            res.json(AuthErrorsProvider.GetError(EAuthErrors.InvalidUserOrPassword));
+        } 
     }
 
     private GenerateAuthToken = (authUser): string => {

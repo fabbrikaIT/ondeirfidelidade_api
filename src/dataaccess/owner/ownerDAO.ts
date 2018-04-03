@@ -11,6 +11,7 @@ export class OwnerDAO extends BaseDAO {
     // private insertQuery: string = "INSERT INTO OWNER (ONDE_IR_ID, TITLE, REGISTER_DATE, OWNER_NAME, EMAIL, CELLPHONE, LOGO, ONDE_IR_CITY, PASSWORD) VALUES ?";
     private insertQuery: string = "INSERT INTO OWNER SET ?";
     private listQuery: string = "SELECT * FROM OWNER";
+    private listCityQuery: string = "SELECT * FROM OWNER WHERE ONDE_IR_CITY = ?";
     private getOwnerQuery: string = "SELECT * FROM OWNER WHERE ID = ?";
     private getOwnerByEmailQuery: string = "SELECT * FROM OWNER WHERE EMAIL = ?";
     private deleteOwnerQuery: string = "DELETE FROM OWNER WHERE ID = ?";
@@ -29,6 +30,32 @@ export class OwnerDAO extends BaseDAO {
             connection => {
 
                 const query = connection.query(this.listQuery, (error, results) => {
+                    if (!error) {
+                        let list: Array<OwnerEntity>;
+                        list = results.map(item => {
+                            let ownerItem = new OwnerEntity();
+                            ownerItem.fromMySqlDbEntity(item);
+
+                            return ownerItem;
+                        });
+
+                        return callback(res, error, list);
+                    }
+
+                    callback(res, error, results);
+                });
+            }, 
+            error => {
+                callback(res, error, null);
+            }
+        );
+    }
+
+    public ListCityOwners = (city: number, res: Response, callback) => {
+        this.connDb.Connect(
+            connection => {
+
+                const query = connection.query(this.listCityQuery, [city], (error, results) => {
                     if (!error) {
                         let list: Array<OwnerEntity>;
                         list = results.map(item => {

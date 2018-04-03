@@ -13,6 +13,7 @@ export class OwnerRoutes extends BaseRoute {
   private buildRoutes() {
     this.router.get("/:id", this.controller.getOwner);
     this.router.get('/', this.controller.listOwners);
+    this.router.get('/list/:cityId', this.controller.listOwners);
     
     this.router.post('/', this.controller.createOwner);    
     this.router.post('/reset', this.controller.resetPassword);

@@ -27,7 +27,16 @@ export class OwnerController extends BaseController {
   Listagem de membros
   */
   public listOwners = (req: Request, res: Response) => {
-    this.dataAccess.ListOwners(res, this.processDefaultResult);
+    req.checkParams("cityId").isNumeric();
+
+    const errors = req.validationErrors();
+    if (errors) {
+      this.dataAccess.ListOwners(res, this.processDefaultResult);  
+    } else {
+      const cityId = req.params["cityId"];
+
+      this.dataAccess.ListCityOwners(cityId, res, this.processDefaultResult);
+    }
   };
 
   /**
