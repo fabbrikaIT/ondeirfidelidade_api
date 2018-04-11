@@ -134,7 +134,7 @@ export class OwnerController extends BaseController {
           cloudinary.uploader.upload(imageLogo, (ret) => {
             if (ret) {
               owner.id = result.insertId;
-              owner.logo = ret.url.replace("/image/upload", "/image/upload/t_fidelidadeimages").replace(".png", ".jpg");
+              owner.logo = ret.url.replace("/image/upload", "/image/upload/t_fidelidadeimages").replace(".png", ".jpg").replace("http", "https");
 
               return this.dataAccess.UpdateOwner(owner, res, this.processDefaultResult);
             } else {

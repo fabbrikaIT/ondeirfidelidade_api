@@ -29,9 +29,11 @@ export class ReportsDAO extends BaseDAO {
 
                 connection.query(query, ownerId, (error, results) => {
                     if (!error && results && results.length > 0) {
+                        connection.release();
                         return callback(res, error, results[0].ITEMS);
                     }
 
+                    connection.release();
                     callback(res, error, results);
                 });
             }, 
@@ -52,9 +54,11 @@ export class ReportsDAO extends BaseDAO {
 
                 connection.query(query, ownerId, (error, results) => {
                     if (!error && results && results.length > 0) {
+                        connection.release();
                         return callback(res, error, results[0].ITEMS);
                     }
 
+                    connection.release();
                     callback(res, error, results);
                 });
             }, 
@@ -74,6 +78,7 @@ export class ReportsDAO extends BaseDAO {
                 }
 
                 connection.query(query, ownerId, (error, results) => {
+                    connection.release();
                     if (!error && results && results.length > 0) {
                         return callback(res, error, results[0].ITEMS);
                     }
@@ -97,6 +102,7 @@ export class ReportsDAO extends BaseDAO {
                 }
 
                 connection.query(query, ownerId, (error, results) => {
+                    connection.release();
                     if (!error && results && results.length > 0) {
                         return callback(res, error, results[0].ITEMS);
                     }

@@ -13,6 +13,7 @@ export class AuthDAO extends BaseDAO {
                 const query: string = 'SELECT * FROM OWNER WHERE EMAIL = ? AND PASSWORD = ?';
 
                 connection.query(query, [email, password], (error, results) => {
+                    connection.release();
                     callback(results, error);
                 });
             }, 

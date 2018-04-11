@@ -10,7 +10,7 @@ export class DbConnection {
     private CONNECTION_CONFIG: any;
     private _dbName: string;
 
-    private connectionPool: any;
+    public connectionPool: any;
     constructor(dbName: string) {
         this._dbName = dbName;
 
@@ -31,6 +31,14 @@ export class DbConnection {
             this.connectionPool = null;
         } else {
             this.connectionPool = mysql.createPool(this.CONNECTION_CONFIG);
+        }
+    }
+
+    public DestroyPool = () => {
+        if (this.connectionPool !== null) {
+            this.connectionPool.end( err => {
+                
+            });
         }
     }
 

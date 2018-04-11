@@ -39,9 +39,11 @@ export class OwnerDAO extends BaseDAO {
                             return ownerItem;
                         });
 
+                        connection.release();
                         return callback(res, error, list);
                     }
 
+                    connection.release();
                     callback(res, error, results);
                 });
             }, 
@@ -52,29 +54,49 @@ export class OwnerDAO extends BaseDAO {
     }
 
     public ListCityOwners = (city: number, res: Response, callback) => {
-        this.connDb.Connect(
-            connection => {
+        // this.connDb.Connect(
+        //     connection => {
 
-                const query = connection.query(this.listCityQuery, [city], (error, results) => {
-                    if (!error) {
-                        let list: Array<OwnerEntity>;
-                        list = results.map(item => {
-                            let ownerItem = new OwnerEntity();
-                            ownerItem.fromMySqlDbEntity(item);
+        //         const query = connection.query(this.listCityQuery, [city], (error, results) => {
+        //             if (!error) {
+        //                 let list: Array<OwnerEntity>;
+        //                 list = results.map(item => {
+        //                     let ownerItem = new OwnerEntity();
+        //                     ownerItem.fromMySqlDbEntity(item);
 
-                            return ownerItem;
-                        });
+        //                     return ownerItem;
+        //                 });
 
-                        return callback(res, error, list);
-                    }
+        //                 connection.release();
+        //                 return callback(res, error, list);
+        //             }
 
-                    callback(res, error, results);
+        //             connection.release();
+        //             callback(res, error, results);
+        //         });
+        //     }, 
+        //     error => {
+        //         callback(res, error, null);
+        //     }
+        // );
+
+
+        this.connDb.connectionPool.query(this.listCityQuery, [city], (error, results) => {
+            if (!error) {
+                let list: Array<OwnerEntity>;
+                list = results.map(item => {
+                    let ownerItem = new OwnerEntity();
+                    ownerItem.fromMySqlDbEntity(item);
+
+                    return ownerItem;
                 });
-            }, 
-            error => {
-                callback(res, error, null);
+
+                return callback(res, error, list);
             }
-        );
+
+            callback(res, error, results);
+        });
+            
     }
 
     /**
@@ -90,9 +112,11 @@ export class OwnerDAO extends BaseDAO {
                         let ownerItem = new OwnerEntity();
                         ownerItem.fromMySqlDbEntity(results[0]);
 
+                        connection.release();
                         return callback(res, error, ownerItem);
                     }
 
+                    connection.release();
                     callback(res, error, results);
                 });
             }, 
@@ -111,9 +135,11 @@ export class OwnerDAO extends BaseDAO {
                         let ownerItem = new OwnerEntity();
                         ownerItem.fromMySqlDbEntity(results[0]);
 
+                        connection.release();
                         return callback(error, ownerItem);
                     }
 
+                    connection.release();
                     callback(error, null);
                 });
 
@@ -138,9 +164,11 @@ export class OwnerDAO extends BaseDAO {
                         let ownerItem = new OwnerEntity();
                         ownerItem.fromMySqlDbEntity(results[0]);
 
+                        connection.release();
                         return callback(res, error, ownerItem);
                     }
 
+                    connection.release();
                     callback(res, error, null);
                 });
 
@@ -161,6 +189,7 @@ export class OwnerDAO extends BaseDAO {
                 const dbEntity = owner.toMysqlDbEntity(true);
 
                 const query = connection.query(this.insertQuery, dbEntity, (error, results) => {
+                    connection.release();
                     callback(error, results);
                 });
             }, 
@@ -177,6 +206,7 @@ export class OwnerDAO extends BaseDAO {
         this.connDb.Connect(
             connection => {
                 const query = connection.query(this.updatePasswordQuery, [password, memberId], (error, results) => {
+                    connection.release();
                     callback(res, error, null);
                 });
 
@@ -197,6 +227,7 @@ export class OwnerDAO extends BaseDAO {
                 const dbOwner = owner.toMysqlDbEntity(false);
 
                 const query = connection.query(this.updateQuery, [dbOwner, owner.id], (error, results) => {
+                    connection.release();
                     callback(res, error, results);
                 });
 

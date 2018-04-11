@@ -24,10 +24,10 @@ class TrafficControl {
         if (process.env.NETWORK_LOG !== undefined && process.env.NETWORK_LOG === "Y"){
             const log: NetworkLog = new NetworkLog(req);
 
-            logProvider.SaveNetworkLog(log);
-            
-            next();
+            logProvider.SaveNetworkLog(log);                    
         }
+
+        next();
     }
 
     /**

@@ -197,7 +197,7 @@ export class OffersDAO extends BaseDAO {
                 const query = connection.query(this.deleteOffersQuery, id, (error, results) => {
                     if (!error) {
                         connection.release();
-                        if (callback)
+                        if (callback)                        
                             return callback(error, results);
                     } else {
                         connection.release();

@@ -9,7 +9,6 @@ import { DataAccessResult } from "../dataaccess/dataAccess.result";
 import { AuthDAO } from '../dataaccess/auth/authDAO';
 import { AuthUserEntity } from '../models/auth/authUser'
 import { Md5 } from 'ts-md5/dist/md5';
-import { ServiceResult } from '../models/serviceResult.model';
 
 export class AuthController extends BaseController {
     private ownerAccess: AuthDAO = new AuthDAO();
