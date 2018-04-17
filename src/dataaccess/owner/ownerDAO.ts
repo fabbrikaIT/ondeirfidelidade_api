@@ -81,7 +81,7 @@ export class OwnerDAO extends BaseDAO {
         // );
 
 
-        this.connDb.connectionPool.query(this.listCityQuery, [city], (error, results) => {
+        DbConnection.connectionPool.query(this.listCityQuery, [city], (error, results) => {
             if (!error) {
                 let list: Array<OwnerEntity>;
                 list = results.map(item => {

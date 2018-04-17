@@ -5,6 +5,7 @@ import { Response } from 'express';
 import { BaseDAO } from "../baseDAO";
 import { OffersEntity } from '../../models/offers/offers.model';
 import { OwnerEntity } from '../../models/owner/ownerEntity';
+import { DbConnection } from '../../config/dbConnection';
 
 export class OffersDAO extends BaseDAO {
     // Query de acesso aos dados
@@ -61,326 +62,230 @@ export class OffersDAO extends BaseDAO {
      * List all offer of owner in database
     */
     public ListOffers = (ownerId: number, res: Response, callback) => {
-        this.connDb.Connect(
-            connection => {
+        DbConnection.connectionPool.query(this.listByOwnerQuery, ownerId, (error, results) => {
+            if (!error) {
+                let list: Array<OffersEntity>;
+                list = results.map(item => {
+                    let ownerItem = new OffersEntity();
+                    ownerItem.fromMySqlDbEntity(item);
 
-                const query = connection.query(this.listByOwnerQuery, ownerId, (error, results) => {
-                    if (!error) {
-                        let list: Array<OffersEntity>;
-                        list = results.map(item => {
-                            let ownerItem = new OffersEntity();
-                            ownerItem.fromMySqlDbEntity(item);
-
-                            return ownerItem;
-                        });
-
-                        connection.release();
-                        return callback(res, error, list);
-                    }
-
-                    connection.release();
-                    return callback(res, error, results);
+                    return ownerItem;
                 });
 
-            }, 
-            error => {
-                callback(res, error, null);
+                return callback(res, error, list);
             }
-        );
+
+            return callback(res, error, results);
+        });
     }
 
     /**
      * List all offer of owner filtered by status in database
     */
     public ListOffersStatus = (ownerId: number, status: number, res: Response, callback) => {
-        this.connDb.Connect(
-            connection => {
+        
+        DbConnection.connectionPool.query(this.listByOwnerStatusQuery, [status, ownerId], (error, results) => {
+            if (!error) {
+                let list: Array<OffersEntity>;
+                list = results.map(item => {
+                    let ownerItem = new OffersEntity();
+                    ownerItem.fromMySqlDbEntity(item);
 
-                const query = connection.query(this.listByOwnerStatusQuery, [status, ownerId], (error, results) => {
-                    if (!error) {
-                        let list: Array<OffersEntity>;
-                        list = results.map(item => {
-                            let ownerItem = new OffersEntity();
-                            ownerItem.fromMySqlDbEntity(item);
-
-                            return ownerItem;
-                        });
-
-                        connection.release();
-                        return callback(res, error, list);
-                    }
-
-                    connection.release();
-                    return callback(res, error, results);
+                    return ownerItem;
                 });
 
-            }, 
-            error => {
-                callback(res, error, null);
+                return callback(res, error, list);
             }
-        );
+
+            return callback(res, error, results);
+        });
+
+            
     }
 
     /**
      * Return an offer entity from database
     */
     public GetOffer(id: number, res: Response,  callback) {
-        this.connDb.Connect(
-            connection => {
-
-                const query = connection.query(this.getOffersQuery, id, (error, results) => {
-                    if (!error && results.length > 0) {
-                       
-                        let ownerItem = new OffersEntity();
-                        ownerItem.fromMySqlDbEntity(results[0]);
-                        
-                        connection.release();
-                        return callback(res, error, ownerItem);
-                        
-                    } else {
-                        connection.release();
-                        return callback(res, error, null);
-                    }
-                });
-            }, 
-            error => {
+        
+        DbConnection.connectionPool.query(this.getOffersQuery, id, (error, results) => {
+            if (!error && results.length > 0) {
+                
+                let ownerItem = new OffersEntity();
+                ownerItem.fromMySqlDbEntity(results[0]);
+                
+                return callback(res, error, ownerItem);
+                
+            } else {
                 return callback(res, error, null);
             }
-        );
+        });
+            
     }
 
     /**
      * Create a new offer in database
      */
     public Create = (offer: OffersEntity, callback)  => { 
-        this.connDb.Connect(
-            connection => { 
-                const dbEntity = offer.toMysqlDbEntity(true);
+        
+        const dbEntity = offer.toMysqlDbEntity(true);
 
-                const query = connection.query(this.insertQuery, dbEntity, (error, results) => { 
-                    connection.release();
-                    return callback(error, results);
-                });
-            },
-            error => {
-                callback(error, null);
-            }
-        );
+        DbConnection.connectionPool.query(this.insertQuery, dbEntity, (error, results) => { 
+            return callback(error, results);
+        });
+            
     }
 
     /**
      * Update an offer in database
      */
     public Update = (offer: OffersEntity, callback)  => { 
-        this.connDb.Connect(
-            connection => { 
-                const dbEntity = offer.toMysqlDbEntity(true);
+        
+        const dbEntity = offer.toMysqlDbEntity(true);
 
-                const query = connection.query(this.updateQuery, [dbEntity, offer.id], (error, results) => { 
-                    connection.release();
-                    return callback(error, results);
-                });
-            },
-            error => {
-                callback(error, null);
-            }
-        );
+        DbConnection.connectionPool.query(this.updateQuery, [dbEntity, offer.id], (error, results) => { 
+            return callback(error, results);
+        });
+            
     }
 
     /**
      * Remove an offer entity from database
     */
     public DeleteOffer = (id: number, callback, res?: Response) => {
-        this.connDb.Connect(
-            connection => {
-
-                const query = connection.query(this.deleteOffersQuery, id, (error, results) => {
-                    if (!error) {
-                        connection.release();
-                        if (callback)                        
-                            return callback(error, results);
-                    } else {
-                        connection.release();
-                        if (callback)
-                            return callback(error, null);
-                    }
-                });
-
-            }, 
-            error => {
-                callback(res, error, null);
+        
+        DbConnection.connectionPool.query(this.deleteOffersQuery, id, (error, results) => {
+            if (!error) {
+                if (callback)                        
+                    return callback(error, results);
+            } else {
+                if (callback)
+                    return callback(error, null);
             }
-        );
+        });
+
+            
     }
 
     /**
      * Update the status of an offer
      */
     public UpdateOfferStatus = (loyaltyId: number, status: EOfferStatus, callback) => {
-        this.connDb.Connect(
-            connection => {
-                const query = connection.query(this.changeStatusQuery, [status, loyaltyId], (error, results) => {
-                    connection.release();
-                    callback(error, results);
-                });
-            },
-            error => {
-                callback(error, null);
-            }
-        );
+        
+        DbConnection.connectionPool.query(this.changeStatusQuery, [status, loyaltyId], (error, results) => {
+            callback(error, results);
+        });
+            
     }
 
     public SearchOffersByCity = (cityId: number, res: Response, callback) => {
-        this.connDb.Connect(
-            connection => {
-                connection.query(this.searchOffersByCityQuery, cityId, (error, results) => {
-                    if (!error && results.length > 0) { 
-                        let list: Array<OffersEntity>;
+        
+        DbConnection.connectionPool.query(this.searchOffersByCityQuery, cityId, (error, results) => {
+            if (!error && results.length > 0) { 
+                let list: Array<OffersEntity>;
 
-                        list = results.map(item => {
-                            let offerItem = new OffersEntity();
-                            offerItem.fromMySqlDbEntity(item);
+                list = results.map(item => {
+                    let offerItem = new OffersEntity();
+                    offerItem.fromMySqlDbEntity(item);
 
-                            return offerItem;
-                        });
-
-                        connection.release();
-                        return callback(res, error, list);
-                    } else {
-                        connection.release();
-                        return callback(res, error, null);
-                    }
+                    return offerItem;
                 });
-            }, 
-            error => {
+
+                return callback(res, error, list);
+            } else {
                 return callback(res, error, null);
             }
-        );
+        });
+            
     }
 
     /** Data for User Coupons and Discounts */
     public GetUserCouponOffer = (userId: number, offerId: number, callback) => {
-        this.connDb.Connect(
-            connection => {
-                connection.query(this.getUserOfferCoupomQuery, [offerId, userId], (error, results) => {
-                    if (!error) { 
-                        if (results.length === 0) {
-                            connection.release();
-                            return callback(null, null);
-                        } else {
-                            let list: Array<CouponEntity>;
+        
+        DbConnection.connectionPool.query(this.getUserOfferCoupomQuery, [offerId, userId], (error, results) => {
+            if (!error) { 
+                if (results.length === 0) {
+                    return callback(null, null);
+                } else {
+                    let list: Array<CouponEntity>;
 
-                            list = results.map(item => {
-                                let couponItem = new CouponEntity();
-                                couponItem.fromMySqlDbEntity(item);
-                                couponItem.offer = OffersEntity.getInstance();
-                                couponItem.offer.fromMySqlDbEntity(item);
+                    list = results.map(item => {
+                        let couponItem = new CouponEntity();
+                        couponItem.fromMySqlDbEntity(item);
+                        couponItem.offer = OffersEntity.getInstance();
+                        couponItem.offer.fromMySqlDbEntity(item);
 
-                                return couponItem;
-                            });
+                        return couponItem;
+                    });
 
-                            connection.release();
-                            return callback(error, list);
-                        }
-                    } else {
-                        connection.release();
-                        return callback(error, null);
-                    }
-                });
-            }, 
-            error => {
+                    return callback(error, list);
+                }
+            } else {
                 return callback(error, null);
             }
-        );
+        });
+            
     }
 
     public GetUserCouponOfferHash = (qrHash: string, userId: number, res: Response, callback) => {
-        this.connDb.Connect(
-            connection => {
-                connection.query(this.getUserOfferHashQuery, [qrHash, userId], (error, results) => {
-                    if (!error) { 
-                        if (results.length === 0) {
-                            connection.release();
-                            return callback(null, null);
-                        } else {
-                            let offerItem = OffersEntity.getInstance();
-                            offerItem.fromMySqlDbEntity(results[0]);
-                            offerItem.owner = OwnerEntity.getInstance();
-                            offerItem.owner.fromMySqlDbEntity(results[0]);
-                            
-                            connection.release();
-                            return callback(res, error, offerItem);
-                        }
-                    } else {
-                        connection.release();
-                        return callback(error, null);
-                    }
-                });
-            }, 
-            error => {
+        
+        DbConnection.connectionPool.query(this.getUserOfferHashQuery, [qrHash, userId], (error, results) => {
+            if (!error) { 
+                if (results.length === 0) {
+                    return callback(null, null);
+                } else {
+                    let offerItem = OffersEntity.getInstance();
+                    offerItem.fromMySqlDbEntity(results[0]);
+                    offerItem.owner = OwnerEntity.getInstance();
+                    offerItem.owner.fromMySqlDbEntity(results[0]);
+                    
+                    return callback(res, error, offerItem);
+                }
+            } else {
                 return callback(error, null);
             }
-        );
+        });
+            
     }
 
 
     public CreateCoupon = (coupon: CouponEntity, callback) => {
-        this.connDb.Connect(
-            connection => {
-                const dbEntity = coupon.toMysqlDbEntity(true);
+        
+        const dbEntity = coupon.toMysqlDbEntity(true);
 
-                connection.query(this.createCouponQuery, dbEntity, (error, results) => {
-                    connection.release();
-                    return callback(error, results);
-                });
-            }, 
-            error => {
-                return callback(error, null);
-            }
-        );
+        DbConnection.connectionPool.query(this.createCouponQuery, dbEntity, (error, results) => {
+            return callback(error, results);
+        });
+            
     }
 
     public ListUserCoupons = (userId: number, res: Response, callback) => {
-        this.connDb.Connect(
-            connection => {
-                connection.query(this.listUserCouponsQuery, userId, (error, results) => {
-                    if (!error && results.length > 0) { 
-                        let list: Array<OffersEntity>;
+        
+        DbConnection.connectionPool.query(this.listUserCouponsQuery, userId, (error, results) => {
+            if (!error && results.length > 0) { 
+                let list: Array<OffersEntity>;
 
-                        list = results.map(item => {
-                            let offerItem = new OffersEntity();
-                            offerItem.fromMySqlDbEntity(item);
+                list = results.map(item => {
+                    let offerItem = new OffersEntity();
+                    offerItem.fromMySqlDbEntity(item);
 
-                            return offerItem;
-                        });
-
-                        connection.release();
-                        return callback(res, error, list);
-                    } else {
-                        connection.release();
-                        return callback(res, error, null);
-                    }
+                    return offerItem;
                 });
-            }, 
-            error => {
-                return callback(error, null);
+
+                return callback(res, error, list);
+            } else {
+                return callback(res, error, null);
             }
-        );
+        });
+           
     }
 
     public UseCoupon = (coupon: CouponEntity, res: Response, callback) => {
-        this.connDb.Connect(
-            connection => {
-                const dbEntity = coupon.toMysqlDbEntity(false);
+        const dbEntity = coupon.toMysqlDbEntity(false);
 
-                connection.query(this.updateCouponQuery, [dbEntity, coupon.id], (error, results) => {
-                    connection.release();
-                    return callback(res, error, results);
-                });
-            }, 
-            error => {
-                return callback(error, null);
-            }
-        );
+        DbConnection.connectionPool.query(this.updateCouponQuery, [dbEntity, coupon.id], (error, results) => {
+            return callback(res, error, results);
+        });
+           
     }
  }

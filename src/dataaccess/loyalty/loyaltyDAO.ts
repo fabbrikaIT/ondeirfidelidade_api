@@ -58,6 +58,14 @@ export class LoyaltyDAO extends BaseDAO {
                                                 AND EXISTS (SELECT 1 FROM USERS U
                                                             WHERE U.ID = LP.USER_ID
                                                             AND U.ONDE_IR_ID = ?)`;
+    private listCityProgramsQuery: string = `SELECT LP.ID AS PROGRAM_ID,L.ID, L.NAME, L.START_DATE, L.END_DATE, L.TYPE, L.DAY_LIMIT, L.USAGE_LIMIT, L.QR_HASH,
+                                                    LU.USAGE_GOAL, LU.USAGE_REWARD
+                                                FROM LOYALTY_PROGRAMS LP, LOYALTY L, LOYALTY_USAGE_TYPE LU
+                                                WHERE LP.LOYALTY_ID = L.ID
+                                                AND L.ID = LU.ID
+                                                AND EXISTS (SELECT 1 FROM USERS U
+                                                            WHERE U.ID = LP.USER_ID
+                                                            AND U.ONDE_IR_CITY = ?)`;
 
     constructor() {
         super();

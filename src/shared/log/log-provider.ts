@@ -5,7 +5,7 @@ import { DbConnection } from '../../config/dbConnection';
 
 class LogProvider {
     public SaveNetworkLog(log: NetworkLog) {
-        const connDb = new DbConnection(process.env.DB_FIDELIDADE);
+        const connDb = new DbConnection(process.env.DB_FIDELIDADE || '');
 
         connDb.Connect(
             connection => {
@@ -22,7 +22,7 @@ class LogProvider {
     }
 
     public SaveApplicationLog(log: ApplicationLog) {
-        const connDb = new DbConnection(process.env.DB_FIDELIDADE);
+        const connDb = new DbConnection(process.env.DB_FIDELIDADE || '');
 
         connDb.Connect(
             connection => {

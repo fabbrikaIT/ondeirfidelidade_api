@@ -564,7 +564,7 @@ export class LoyaltyController extends BaseController {
                 const program = LoyaltyProgramEntity.GetInstance();
                 program.LoyaltyId = loyalty.id;
                 program.UserId = result.Id;
-                program.CardLink = `http://ondeircidades.com.br/fidelidade/#/card/${loyalty.qrHash}/${result.Id}`;
+                program.CardLink = `http://ondeircidades.com.br/sistemas/#/card/${loyalty.qrHash}/${result.Id}`;
 
                 this.dataAccess.SubscribeUserLoyaltyProgram(program, (error, ret) => {
                     if (error) {

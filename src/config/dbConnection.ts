@@ -10,7 +10,7 @@ export class DbConnection {
     private CONNECTION_CONFIG: any;
     private _dbName: string;
 
-    public connectionPool: any;
+    public static connectionPool: any = null;
     constructor(dbName: string) {
         this._dbName = dbName;
 
@@ -27,27 +27,29 @@ export class DbConnection {
             multipleStatements : true
         };
 
-        if (this.CONNECTION_CONFIG.host === undefined || this.CONNECTION_CONFIG.database === undefined) {
-            this.connectionPool = null;
-        } else {
-            this.connectionPool = mysql.createPool(this.CONNECTION_CONFIG);
+        if (DbConnection.connectionPool === null) {        
+            if (this.CONNECTION_CONFIG.host === undefined || this.CONNECTION_CONFIG.database === undefined) {
+                DbConnection.connectionPool = null;
+            } else {
+                DbConnection.connectionPool = mysql.createPool(this.CONNECTION_CONFIG);
+            }
         }
     }
 
     public DestroyPool = () => {
-        if (this.connectionPool !== null) {
-            this.connectionPool.end( err => {
+        if (DbConnection.connectionPool !== null) {
+            DbConnection.connectionPool.end( err => {
                 
             });
         }
     }
 
     public Connect = (successCallback, errorCallback) => {
-        if (this.connectionPool == null){
+        if (DbConnection.connectionPool == null){
             this.CreateConnection();
         }
 
-        this.connectionPool.getConnection(function(poolError, connection) { 
+        DbConnection.connectionPool.getConnection(function(poolError, connection) { 
             if (poolError) {
                 errorCallback(poolError);
 

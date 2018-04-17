@@ -29,7 +29,7 @@ export class OndeIrDAO extends BaseDAO {
                             // Usuário integrado do App
                             const user = UserEntity.GetInstance();
                             user.Name = serviceResult.user_info.full_name;
-                            user.OndeIrCity = 21; // Curitiba
+                            user.OndeIrCity = serviceResult.user_info.codCidade;
                             user.Email = serviceResult.user_info.email;
                             user.OndeIrId = serviceResult.user_info.user_id;
 

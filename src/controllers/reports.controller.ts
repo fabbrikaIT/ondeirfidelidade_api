@@ -52,6 +52,36 @@ export class ReportsController extends BaseController {
         }
     }
 
+    public ListLoyaltyPrograms = (req: Request, res: Response) => {
+        const ownerId = this.GetOwnerId(req, res);
+
+        if (ownerId >= 0) {
+            return this.dataAccess.ListLoyaltyPrograms(ownerId, res, this.processDefaultResult);
+        } else {
+            return res.json(ServiceResult.HandlerError("Owner Not Found"));
+        }
+    }
+
+    public ListCoupons = (req: Request, res: Response) => {
+        const ownerId = this.GetOwnerId(req, res);
+
+        if (ownerId >= 0) {
+            return this.dataAccess.ListCoupons(ownerId, res, this.processDefaultResult);
+        } else {
+            return res.json(ServiceResult.HandlerError("Owner Not Found"));
+        }
+    }
+
+    public ListClients = (req: Request, res: Response) => {
+        const ownerId = this.GetOwnerId(req, res);
+
+        if (ownerId >= 0) {
+            return this.dataAccess.ListClients(ownerId, res, this.processDefaultResult);
+        } else {
+            return res.json(ServiceResult.HandlerError("Owner Not Found"));
+        }
+    }
+
     // Metodos de apoio
     private GetOwnerId = (req: Request, res: Response): number => {
         req.checkParams("ownerId").isNumeric();

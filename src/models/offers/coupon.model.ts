@@ -23,12 +23,14 @@ export class CouponEntity extends BaseEntity implements IToMysqlDbEntity {
                 OFFER_ID: this.offerId,
                 USER_ID: this.userId,
                 COUPON_LINK: this.couponLink,
-                IS_VALID: this.isValid ? 1 : 0
+                IS_VALID: this.isValid ? 1 : 0,
+                VALID_DATE: this.isValid ? new Date() : null
             }
         } else {
             return {
                 COUPON_LINK: this.couponLink,
-                IS_VALID: this.isValid ? 1 : 0
+                IS_VALID: this.isValid ? 1 : 0,
+                VALID_DATE: this.isValid ? new Date() : null
             }
         }
     }
