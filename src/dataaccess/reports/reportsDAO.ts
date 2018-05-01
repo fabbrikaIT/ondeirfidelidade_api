@@ -15,36 +15,49 @@ export class ReportsDAO extends BaseDAO {
     private getClientsNumberQuery = `SELECT COUNT(1) AS ITEMS FROM LOYALTY_PROGRAMS LP, LOYALTY L
                                     WHERE LP.LOYALTY_ID = L.ID`;
     private listLoyaltyProgramsQuery = `SELECT L.NAME AS LOYALTY, U.NAME AS USER, LP.REGISTER_DATE, LP.DISCHARGE, COUNT(LPT.POINTS_DATE) AS POINTS
-                                        FROM LOYALTY_PROGRAMS LP LEFT JOIN LOYALTY_POINTS LPT ON LPT.PROGRAM_ID = LP.ID, LOYALTY L, USERS U
+                                        FROM LOYALTY_PROGRAMS LP LEFT JOIN LOYALTY_POINTS LPT ON LPT.PROGRAM_ID = LP.ID, LOYALTY L, USERS U, OWNER O
                                         WHERE LP.LOYALTY_ID = L.ID
-                                        AND LP.USER_ID = U.ID`;
+                                        AND LP.USER_ID = U.ID
+                                        AND L.OWNER_ID = O.ID`;
     private listCouponsQuery = `SELECT O.TITLE, O.TYPE, U.NAME AS USER, C.IS_VALID, C.VALID_DATE
-                                FROM COUPONS C, OFFERS O, USERS U
+                                FROM COUPONS C, OFFERS O, USERS U, OWNER OW
                                 WHERE C.OFFER_ID = O.ID
-                                AND C.USER_ID = U.ID`;
+                                AND C.USER_ID = U.ID
+                                AND O.OWNER_ID = OW.ID`;
     private listClientsQuery = `SELECT * FROM USERS U
                                 WHERE EXISTS (SELECT 1 FROM LOYALTY_PROGRAMS LP, LOYALTY L
                                             WHERE LP.LOYALTY_ID = L.ID AND LP.USER_ID = U.ID AND L.OWNER_ID = ?)
                                 OR EXISTS (SELECT 1 FROM COUPONS C, OFFERS O 
                                             WHERE C.OFFER_ID = O.ID AND C.USER_ID = U.ID AND O.OWNER_ID = ?)`;
+    private listCityClientsQuery = `SELECT * FROM USERS U
+                                WHERE EXISTS (SELECT 1 FROM LOYALTY_PROGRAMS LP, LOYALTY L, OWNER OW
+                                            WHERE LP.LOYALTY_ID = L.ID AND LP.USER_ID = U.ID AND L.OWNER_ID = OW.ID AND OW.ONDE_IR_CITY = ?)
+                                OR EXISTS (SELECT 1 FROM COUPONS C, OFFERS O , OWNER OW
+                                            WHERE C.OFFER_ID = O.ID AND C.USER_ID = U.ID AND O.OWNER_ID = OW.ID  AND OW.ONDE_IR_CITY = ?)`;
     private listAllClientsQuery = `SELECT * FROM USERS U`;
 
     constructor() {
         super();
     }
 
-    public ListLoyaltyPrograms = (ownerId: number, res: Response, callback) => {
+    public ListLoyaltyPrograms = (ownerId: number, cityId: number, res: Response, callback) => {
         this.connDb.Connect(
             connection => {
                 let query = this.listLoyaltyProgramsQuery;
+                let where = ownerId;
 
                 if (ownerId > 0) {
                     query = query + ` AND L.OWNER_ID = ? GROUP BY LP.ID`;
                 } else {
-                    query = query + ` GROUP BY LP.ID`;
+                    if (cityId > 0) {
+                        query = query + ` AND O.ONDE_IR_CITY = ? GROUP BY LP.ID`;
+                        where = cityId;
+                    } else {
+                        query = query + ` GROUP BY LP.ID`;
+                    }
                 }
 
-                connection.query(query, ownerId, (error, results) => {
+                connection.query(query, where, (error, results) => {
                     if (!error && results && results.length > 0) {
                         connection.release();
                         return callback(res, error, results);
@@ -60,16 +73,22 @@ export class ReportsDAO extends BaseDAO {
         );
     }
 
-    public ListCoupons = (ownerId: number, res: Response, callback) => {
+    public ListCoupons = (ownerId: number, cityId: number, res: Response, callback) => {
         this.connDb.Connect(
             connection => {
                 let query = this.listCouponsQuery;
+                let where = ownerId;
 
                 if (ownerId > 0) {
                     query = query + ` AND O.OWNER_ID = ?`;
-                } 
+                } else {
+                    if (cityId > 0) {
+                        query = query + ` AND OW.ONDE_IR_CITY = ?`;
+                        where = cityId;
+                    } 
+                }
 
-                connection.query(query, ownerId, (error, results) => {
+                connection.query(query, where, (error, results) => {
                     if (!error && results && results.length > 0) {
                         connection.release();
                         return callback(res, error, results);
@@ -85,14 +104,19 @@ export class ReportsDAO extends BaseDAO {
         );
     }
 
-    public ListClients = (ownerId: number, res: Response, callback) => {
+    public ListClients = (ownerId: number, cityId: number, res: Response, callback) => {
         this.connDb.Connect(
             connection => {
                 let query = this.listAllClientsQuery;
 
                 if (ownerId > 0) {
                     query = this.listClientsQuery;
-                } 
+                } else {
+                    if (cityId > 0) {
+                        query = this.listCityClientsQuery;
+                        ownerId = cityId;
+                    } 
+                }
 
                 connection.query(query, [ownerId, ownerId], (error, results) => {
                     if (!error && results && results.length > 0) {

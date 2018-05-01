@@ -20,8 +20,8 @@ export class ReportsRoutes extends BaseRoute {
     this.router.get('/dashboard/coupons/:ownerId', this.controller.GetCouponsNumber);
 
     //Interfaces de Relatórios
-    this.router.get('/loyaltyprogram/:ownerId', this.controller.ListLoyaltyPrograms);
-    this.router.get('/coupons/:ownerId', this.controller.ListCoupons);
-    this.router.get('/clients/:ownerId', this.controller.ListClients);
+    this.router.get('/loyaltyprogram/:ownerId/:cityId?', this.controller.ListLoyaltyPrograms);
+    this.router.get('/coupons/:ownerId/:cityId?', this.controller.ListCoupons);
+    this.router.get('/clients/:ownerId/:cityId?', this.controller.ListClients);
   }
 }

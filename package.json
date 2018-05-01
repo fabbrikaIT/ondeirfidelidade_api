@@ -36,6 +36,7 @@
     "mailchimp-api-v3": "^1.8.0",
     "mysql": "^2.15.0",
     "mysql2": "^1.5.1",
+    "nodemailer": "^4.6.4",
     "sequelize": "^4.32.2",
     "swagger-ui-express": "^2.0.15",
     "swt-framework": "^0.2.0",

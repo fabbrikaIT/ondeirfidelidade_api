@@ -3,6 +3,7 @@ import * as passgen from 'generate-password';
 import {Md5} from 'ts-md5/dist/md5';
 import * as cloudinary from 'cloudinary';
 import * as mailchimp from 'mailchimp-api-v3';
+import * as mailer from 'nodemailer';
 // import { check, validationResult } from "express-validator/check";
 
 import { BaseController } from "./base.controller";
@@ -35,7 +36,11 @@ export class OwnerController extends BaseController {
     } else {
       const cityId = req.params["cityId"];
 
-      this.dataAccess.ListCityOwners(cityId, res, this.processDefaultResult);
+      if (cityId > 0) {
+        this.dataAccess.ListCityOwners(cityId, res, this.processDefaultResult);
+      } else {
+        this.dataAccess.ListOwners(res, this.processDefaultResult);
+      }
     }
   };
 
@@ -267,6 +272,7 @@ export class OwnerController extends BaseController {
         const newPassword = Md5.hashStr(password).toString();
 
         //Enviar email com nova senha
+        this.SendResetPasswordEmail(email, originalPassword);
         
         this.dataAccess.UpdatePassword(ret.id, newPassword, res, this.processDefaultResult);
       } else {
@@ -274,4 +280,30 @@ export class OwnerController extends BaseController {
       }
     })
   };
+
+  private SendResetPasswordEmail = (email: string, password: string) => {
+    let transporter = mailer.createTransport({
+      host: 'smtp.appondeir.com.br',
+      port: 465,
+      secure: true,
+      auth: {
+          user: 'fidelidade@appondeir.com.br',
+          pass: 'fidelidade001'
+      }
+    });
+
+    let mailOptions = {
+      from: '"Onde Ir - Sistemas" <no-replay@appondeir.com.br>', // sender address
+      to: email, // list of receivers
+      subject: "[Onde Ir] - Reset de Senha", // Subject line
+      text: "", // plain text body
+      html: `<b>Sua nova senha para acesso ao Sistemas do Onde Ir é: </b> ${password}` // html body
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+          return console.log(error);
+      }      
+    });
+  }
 }

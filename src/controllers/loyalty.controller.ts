@@ -510,7 +510,7 @@ export class LoyaltyController extends BaseController {
                         return result.Points[0].PointDate.toLocaleDateString() === new Date().toLocaleDateString()
                     });
 
-                    if (loyalty.dayLimit <= pointsToday.length) {
+                    if (loyalty.dayLimit > 0 && loyalty.dayLimit <= pointsToday.length) {
                         return res.json(LoyaltyErrorsProvider.GetError(ELoyaltyErrors.LoyaltyDayLimitExceeded));
                     }
 

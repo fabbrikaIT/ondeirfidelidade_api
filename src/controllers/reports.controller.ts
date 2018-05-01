@@ -54,9 +54,10 @@ export class ReportsController extends BaseController {
 
     public ListLoyaltyPrograms = (req: Request, res: Response) => {
         const ownerId = this.GetOwnerId(req, res);
+        const cityId = this.GetCityId(req, res);
 
         if (ownerId >= 0) {
-            return this.dataAccess.ListLoyaltyPrograms(ownerId, res, this.processDefaultResult);
+            return this.dataAccess.ListLoyaltyPrograms(ownerId, cityId, res, this.processDefaultResult);
         } else {
             return res.json(ServiceResult.HandlerError("Owner Not Found"));
         }
@@ -64,9 +65,10 @@ export class ReportsController extends BaseController {
 
     public ListCoupons = (req: Request, res: Response) => {
         const ownerId = this.GetOwnerId(req, res);
+        const cityId = this.GetCityId(req, res);
 
         if (ownerId >= 0) {
-            return this.dataAccess.ListCoupons(ownerId, res, this.processDefaultResult);
+            return this.dataAccess.ListCoupons(ownerId, cityId, res, this.processDefaultResult);
         } else {
             return res.json(ServiceResult.HandlerError("Owner Not Found"));
         }
@@ -74,9 +76,10 @@ export class ReportsController extends BaseController {
 
     public ListClients = (req: Request, res: Response) => {
         const ownerId = this.GetOwnerId(req, res);
+        const cityId = this.GetCityId(req, res);
 
         if (ownerId >= 0) {
-            return this.dataAccess.ListClients(ownerId, res, this.processDefaultResult);
+            return this.dataAccess.ListClients(ownerId, cityId, res, this.processDefaultResult);
         } else {
             return res.json(ServiceResult.HandlerError("Owner Not Found"));
         }
@@ -93,5 +96,17 @@ export class ReportsController extends BaseController {
         }
 
         return req.params["ownerId"];
+    }
+
+    private GetCityId = (req: Request, res: Response): number => {
+        req.checkParams("cityId").isNumeric();
+
+        const errors = req.validationErrors();
+        if (errors) {
+            //res.json(GenericErrorsProvider.GetError(EGenericErrors.InvalidArguments));
+            return -1;
+        }
+
+        return req.params["cityId"];
     }
 }
